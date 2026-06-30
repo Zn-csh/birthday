@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加素材 - 张楠 & 蔡思晗</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #fefcf9; }
+        .form-section { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+        input, textarea, select { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 14px; outline: none; transition: border 0.2s; font-family: inherit; }
+        input:focus, textarea:focus, select:focus { border-color: #f43e5e; box-shadow: 0 0 0 3px rgba(244,62,94,0.08); }
+        textarea { resize: vertical; min-height: 80px; }
+        .btn { padding: 10px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.25s; }
+        .btn-primary { background: linear-gradient(135deg, #e11d48, #f43e5e); color: #fff; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(244,62,94,0.3); }
+        .btn-outline { background: #fff; color: #666; border: 1.5px solid #e5e7eb; }
+        .btn-outline:hover { background: #f9fafb; }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .tag-daily { background: #fff7ed; color: #c2410c; }
+        .tag-journey { background: #eff6ff; color: #2563eb; }
+        .code-block { background: #1e1e1e; color: #d4d4d4; border-radius: 12px; padding: 20px; font-size: 13px; font-family: "SF Mono", "Fira Code", monospace; overflow-x: auto; white-space: pre; line-height: 1.6; }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 24px; border-radius: 12px; font-size: 14px; z-index: 999; animation: fadeSlideIn 0.3s ease; }
+    </style>
+</head>
+<body class="antialiased">
+
+<div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">＋ 添加新素材</h1>
+            <p class="text-sm text-gray-400 mt-1">填写下面的表单，生成代码后粘贴到 data.js 中</p>
+        </div>
+        <a href="birthday.html" class="text-sm text-gray-400 hover:text-gray-600">← 返回网站</a>
+    </div>
+
+    <!-- 步骤说明 -->
+    <div class="form-section">
+        <h3 class="font-bold text-gray-700 mb-3">📋 使用步骤</h3>
+        <ol class="text-sm text-gray-500 space-y-2 ml-4 list-decimal">
+            <li>在 <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">birthday/</code> 下新建文件夹（如 <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">日常5/</code>），放入照片</li>
+            <li>在下方表单中填写内容信息</li>
+            <li>点击「生成代码」→ 复制生成的代码</li>
+            <li>打开 <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">data.js</code>，在对应数组末尾粘贴</li>
+            <li>刷新网站即可看到新内容</li>
+        </ol>
+    </div>
+
+    <!-- 表单 -->
+    <div class="form-section">
+        <h3 class="font-bold text-gray-700 mb-4">✏️ 填写内容</h3>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label>板块 *</label>
+                <select id="type">
+                    <option value="daily">📖 日常</option>
+                    <option value="journey">🧭 旅程</option>
+                </select>
+            </div>
+            <div>
+                <label>文件夹名 *</label>
+                <input type="text" id="folder" placeholder="例如：日常5 或 旅程4">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <label>标题 *</label>
+                <input type="text" id="title" placeholder="例如：珠江新城散步">
+            </div>
+            <div>
+                <label>日期 *</label>
+                <input type="date" id="date">
+            </div>
+        </div>
+
+        <div class="mb-4" id="location-group" style="display:none;">
+            <label>地点（仅旅程）</label>
+            <input type="text" id="location" placeholder="例如：珠海">
+        </div>
+
+        <div class="mb-4">
+            <label>描述文字 *</label>
+            <textarea id="text" rows="3" placeholder="在这里写下你的感受..."></textarea>
+        </div>
+
+        <!-- 照片列表 -->
+        <div>
+            <label>照片 <span class="text-gray-300 font-normal">（每行一张，旅程照片可加配文用 | 分隔）</span></label>
+            <div id="photo-list">
+                <div class="flex gap-2 mb-2">
+                    <input type="text" class="photo-input" placeholder="文件名.jpg" style="flex:1">
+                    <input type="text" class="photo-caption-input" placeholder="配文（可选，仅旅程）" style="flex:1;display:none;">
+                    <button class="btn btn-outline btn-sm" onclick="removePhoto(this)" style="flex-shrink:0;">✕</button>
+                </div>
+            </div>
+            <button class="btn btn-outline btn-sm mt-2" onclick="addPhoto()">+ 添加照片</button>
+        </div>
+    </div>
+
+    <!-- 生成按钮 -->
+    <div class="flex gap-3 mb-6">
+        <button class="btn btn-primary" onclick="generate()">🔮 生成代码</button>
+        <button class="btn btn-outline" onclick="generateFull()">📦 生成完整 data.js</button>
+    </div>
+
+    <!-- 代码输出 -->
+    <div id="output-area" style="display:none;">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-gray-700">📋 生成的代码</h3>
+            <button class="btn btn-outline btn-sm" onclick="copyCode()">📋 复制到剪贴板</button>
+        </div>
+        <div class="code-block" id="code-output"></div>
+        <p class="text-xs text-gray-400 mt-3" id="paste-hint"></p>
+    </div>
+</div>
+
+<script>
+    const typeSelect = document.getElementById('type');
+    const locationGroup = document.getElementById('location-group');
+    const photoList = document.getElementById('photo-list');
+
+    // 板块切换：显示/隐藏地点字段
+    typeSelect.addEventListener('change', () => {
+        locationGroup.style.display = typeSelect.value === 'journey' ? 'block' : 'none';
+        // 显示/隐藏配文输入框
+        document.querySelectorAll('.photo-caption-input').forEach(el => {
+            el.style.display = typeSelect.value === 'journey' ? 'block' : 'none';
+        });
+    });
+
+    function addPhoto() {
+        const isJourney = typeSelect.value === 'journey';
+        const div = document.createElement('div');
+        div.className = 'flex gap-2 mb-2';
+        div.innerHTML = `
+            <input type="text" class="photo-input" placeholder="文件名.jpg" style="flex:1">
+            <input type="text" class="photo-caption-input" placeholder="配文（可选）" style="flex:1;${isJourney ? '' : 'display:none;'}">
+            <button class="btn btn-outline btn-sm" onclick="removePhoto(this)" style="flex-shrink:0;">✕</button>
+        `;
+        photoList.appendChild(div);
+    }
+
+    function removePhoto(btn) {
+        const items = photoList.querySelectorAll('.flex');
+        if (items.length <= 1) return;
+        btn.parentElement.remove();
+    }
+
+    function getPhotos() {
+        const rows = photoList.querySelectorAll('.flex');
+        const photos = [];
+        rows.forEach(row => {
+            const file = row.querySelector('.photo-input').value.trim();
+            const caption = row.querySelector('.photo-caption-input').value.trim();
+            if (file) {
+                if (caption) {
+                    photos.push({ file, caption });
+                } else {
+                    photos.push(file);
+                }
+            }
+        });
+        return photos;
+    }
+
+    function generate() {
+        const type = typeSelect.value;
+        const folder = document.getElementById('folder').value.trim();
+        const title = document.getElementById('title').value.trim();
+        const date = document.getElementById('date').value;
+        const location = document.getElementById('location').value.trim();
+        const text = document.getElementById('text').value.trim();
+        const photos = getPhotos();
+
+        if (!folder || !title || !date || !text || photos.length === 0) {
+            showToast('请填写所有必填字段（文件夹名、标题、日期、描述、至少一张照片）');
+            return;
+        }
+
+        let code = '';
+        if (type === 'daily') {
+            const photoNames = photos.map(p => typeof p === 'string' ? p : p.file);
+            code = `    {\n      folder: "${folder}",\n      title: "${title}",\n      date: "${date}",\n      text: "${escapeJS(text)}",\n      photos: [${photoNames.map(p => `"${p}"`).join(', ')}]\n    }`;
+        } else {
+            const photoEntries = photos.map(p => {
+                if (typeof p === 'string') return `"${p}"`;
+                return `{ file: "${p.file}", caption: "${escapeJS(p.caption)}" }`;
+            });
+            code = `    {\n      folder: "${folder}",\n      title: "${title}",\n      location: "${location}",\n      date: "${date}",\n      text: "${escapeJS(text)}",\n      photos: [${photoEntries.join(', ')}]\n    }`;
+        }
+
+        document.getElementById('code-output').textContent = code + ',';
+        document.getElementById('output-area').style.display = 'block';
+        document.getElementById('paste-hint').textContent = type === 'daily'
+            ? '↑ 复制上面的代码，粘贴到 data.js 中 daily 数组的末尾（在最后一个 ] 之前）'
+            : '↑ 复制上面的代码，粘贴到 data.js 中 journeys 数组的末尾（在最后一个 ] 之前）';
+        document.getElementById('output-area').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function generateFull() {
+        const type = typeSelect.value;
+        const folder = document.getElementById('folder').value.trim();
+        const title = document.getElementById('title').value.trim();
+        const date = document.getElementById('date').value;
+        const location = document.getElementById('location').value.trim();
+        const text = document.getElementById('text').value.trim();
+        const photos = getPhotos();
+
+        if (!folder || !title || !date || !text || photos.length === 0) {
+            showToast('请填写所有必填字段');
+            return;
+        }
+
+        let newEntry = '';
+        if (type === 'daily') {
+            const photoNames = photos.map(p => typeof p === 'string' ? p : p.file);
+            newEntry = `    {\n      folder: "${folder}",\n      title: "${title}",\n      date: "${date}",\n      text: "${escapeJS(text)}",\n      photos: [${photoNames.map(p => `"${p}"`).join(', ')}]\n    }`;
+        } else {
+            const photoEntries = photos.map(p => {
+                if (typeof p === 'string') return `"${p}"`;
+                return `{ file: "${p.file}", caption: "${escapeJS(p.caption)}" }`;
+            });
+            newEntry = `    {\n      folder: "${folder}",\n      title: "${title}",\n      location: "${location}",\n      date: "${date}",\n      text: "${escapeJS(text)}",\n      photos: [${photoEntries.join(', ')}]\n    }`;
+        }
+
+        // Read existing data.js via prompt - for the full file, we'd need to read it.
+        // Instead, generate the complete file using the existing SITE_DATA from the main page.
+        // Since we can't access it, we'll generate a template with instructions.
+        document.getElementById('code-output').textContent =
+            '// ⚠️ 请按以下步骤操作：\n' +
+            '// 1. 打开 data.js\n' +
+            '// 2. 在 ' + (type === 'daily' ? 'daily' : 'journeys') + ' 数组的末尾添加以下条目（在 ] 之前）：\n\n' +
+            newEntry + ',\n\n' +
+            '// 3. 保存文件，刷新网站即可';
+        document.getElementById('output-area').style.display = 'block';
+        document.getElementById('paste-hint').textContent = '';
+        document.getElementById('output-area').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function escapeJS(str) {
+        return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    }
+
+    function copyCode() {
+        const code = document.getElementById('code-output').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            showToast('✅ 已复制到剪贴板！');
+        }).catch(() => {
+            showToast('复制失败，请手动选中代码复制');
+        });
+    }
+
+    function showToast(msg) {
+        const existing = document.querySelector('.toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }
+
+    // 初始化日期为今天
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+</script>
+
+</body>
+</html>

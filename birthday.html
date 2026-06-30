@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>张楠 & 蔡思晗</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --rose: #f43e5e;
+            --transition-card: 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #fefcf9;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .page {
+            display: none;
+            min-height: 100vh;
+        }
+        .page.active {
+            display: block;
+            animation: fadeSlideIn 0.5s ease;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33%       { transform: translateY(-15px) rotate(3deg); }
+            66%       { transform: translateY(-5px) rotate(-2deg); }
+        }
+
+        /* ========== 首页 ========== */
+        .hero-gradient {
+            background: linear-gradient(135deg, #fce4e4 0%, #fef0f0 25%, #fff5ee 50%, #fce8e8 75%, #fef5f5 100%);
+        }
+
+        .nav-card {
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.10);
+        }
+        .nav-card-daily:hover { background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+        .nav-card-journey:hover { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+
+        /* ========== 日常 ========== */
+        .daily-bg {
+            background: linear-gradient(180deg, #fffaf5 0%, #fff7ed 30%, #fef5ee 60%, #fdf2f0 100%);
+        }
+        .daily-card {
+            background: #fffdf9;
+            border-radius: 22px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.04);
+            transition: all 0.35s ease;
+        }
+        .daily-card:hover {
+            box-shadow: 0 8px 35px rgba(0,0,0,0.08);
+        }
+        .daily-date {
+            display: inline-block;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========== 卡牌堆叠 ========== */
+        .stack-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            border-radius: 16px;
+            background: #f5f5f5;
+            user-select: none;
+        }
+        .stack-item {
+            position: absolute;
+            inset: 0;
+            transition: all var(--transition-card);
+            border-radius: 16px;
+            overflow: hidden;
+            will-change: transform, opacity;
+        }
+        .stack-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+        /* 当前激活 */
+        .stack-active {
+            z-index: 4;
+            transform: translateX(0) scale(1);
+            opacity: 1;
+            box-shadow: 0 8px 35px rgba(0,0,0,0.14);
+            cursor: pointer;
+        }
+        /* 下一张——从右侧探出 */
+        .stack-next {
+            z-index: 3;
+            transform: translateX(6.5%) scale(0.92);
+            opacity: 0.55;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+        }
+        /* 前一张 */
+        .stack-prev {
+            z-index: 2;
+            transform: translateX(-6.5%) scale(0.92);
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* 其余隐藏 */
+        .stack-hidden {
+            z-index: 1;
+            opacity: 0;
+            transform: translateX(0) scale(0.9);
+            pointer-events: none;
+        }
+
+        /* 堆叠箭头 */
+        .stack-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(6px);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #555;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            transition: all 0.25s;
+        }
+        .stack-arrow:hover {
+            background: #fff;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.16);
+            color: #111;
+        }
+        .stack-arrow:active { transform: translateY(-50%) scale(0.93); }
+        .stack-arrow-left  { left: 10px; }
+        .stack-arrow-right { right: 10px; }
+        .stack-arrow.hidden { display: none; }
+
+        /* 圆点指示器 */
+        .stack-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .stack-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d1d5db;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .stack-dot.active {
+            background: #f43e5e;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        /* 配文区域 */
+        .stack-caption-area {
+            text-align: center;
+            min-height: 28px;
+            margin-top: 10px;
+            transition: all 0.35s ease;
+        }
+        .stack-caption-text {
+            font-size: 14px;
+            color: #6b7280;
+            font-style: italic;
+            transition: opacity 0.3s ease;
+        }
+        .stack-counter {
+            font-size: 12px;
+            color: #bbb;
+            margin-top: 2px;
+        }
+
+        /* ========== 旅程封面 ========== */
+        .journey-bg {
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 20%, #eef2f6 60%, #f0f4f8 100%);
+        }
+        .cover-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        @media (max-width: 640px) {
+            .cover-grid { grid-template-columns: 1fr; }
+        }
+
+        .cover-card {
+            position: relative;
+            aspect-ratio: 3 / 4;
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .cover-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        .cover-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .cover-card:hover img {
+            transform: scale(1.05);
+        }
+        .cover-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg,
+                rgba(0,0,0,0.05) 0%,
+                rgba(0,0,0,0.02) 35%,
+                rgba(0,0,0,0.45) 70%,
+                rgba(0,0,0,0.75) 100%);
+        }
+        .cover-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 20px;
+            color: #fff;
+        }
+        .cover-location {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            padding: 3px 12px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .cover-title {
+            font-size: 22px;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .cover-date {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* ========== 旅程详情浮层 ========== */
+        .journey-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: #fefcf9;
+            overflow-y: auto;
+            animation: fadeSlideIn 0.4s ease;
+        }
+        .overlay-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(254,252,249,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid #f0ece6;
+        }
+
+        /* ========== 灯箱 ========== */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.25s ease;
+        }
+        .lightbox img {
+            max-width: 92vw;
+            max-height: 88vh;
+            border-radius: 8px;
+            object-fit: contain;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            color: #fff;
+            font-size: 32px;
+            cursor: pointer;
+            width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            transition: background 0.2s;
+        }
+        .lightbox-close:hover { background: rgba(255,255,255,0.16); }
+        .lightbox-nav {
+            position: absolute;
+            top: 50%; transform: translateY(-50%);
+            color: #fff;
+            font-size: 44px;
+            cursor: pointer;
+            width: 52px; height: 52px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .lightbox-nav:hover { background: rgba(255,255,255,0.14); }
+        .lightbox-prev { left: 16px; }
+        .lightbox-next { right: 16px; }
+        .lightbox-caption {
+            position: absolute;
+            bottom: 24px;
+            left: 50%; transform: translateX(-50%);
+            color: #ccc;
+            font-size: 14px;
+            background: rgba(0,0,0,0.6);
+            padding: 6px 20px;
+            border-radius: 20px;
+            max-width: 80vw;
+            text-align: center;
+        }
+
+        /* ========== 通用 ========== */
+        .back-btn {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6b7280;
+            font-size: 15px;
+            padding: 8px 16px;
+            border-radius: 24px;
+            transition: all 0.25s;
+            background: none;
+            border: none;
+        }
+        .back-btn:hover {
+            background: rgba(0,0,0,0.04);
+            color: #374151;
+        }
+
+        @media (max-width: 768px) {
+            .stack-arrow { width: 34px; height: 34px; font-size: 18px; }
+            .stack-arrow-left  { left: 6px; }
+            .stack-arrow-right { right: 6px; }
+            .cover-title { font-size: 18px; }
+            .lightbox-nav { font-size: 32px; width: 40px; height: 40px; }
+        }
+
+        /* ========== 隐藏信封 ========== */
+        #secret-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: radial-gradient(ellipse at center, #2d1b24 0%, #1a1016 40%, #0f0a0d 100%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #secret-overlay.show {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* 背景浮动粒子 */
+        .secret-particles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+        .secret-particle {
+            position: absolute;
+            font-size: 14px;
+            animation: particleFloat 8s ease-in-out infinite;
+            opacity: 0.3;
+        }
+        @keyframes particleFloat {
+            0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0.2; }
+            25% { transform: translateY(-30px) translateX(15px) rotate(5deg); opacity: 0.5; }
+            50% { transform: translateY(-15px) translateX(-10px) rotate(-3deg); opacity: 0.3; }
+            75% { transform: translateY(-40px) translateX(5px) rotate(2deg); opacity: 0.6; }
+        }
+
+        /* ---- 信封阶段 ---- */
+        .secret-phase {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        .secret-phase.active {
+            display: flex;
+            animation: fadeSlideIn 0.6s ease;
+        }
+
+        /* 水波纹 */
+        .ripple-container {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .ripple-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(244, 130, 150, 0.4);
+            animation: rippleOut 3s ease-out infinite;
+        }
+        .ripple-ring:nth-child(2) { animation-delay: 1s; }
+        .ripple-ring:nth-child(3) { animation-delay: 2s; }
+        @keyframes rippleOut {
+            0%   { transform: scale(0.5); opacity: 0.7; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        /* 信封顶部提示文字 */
+        .envelope-hint {
+            color: #f8d0d8;
+            font-size: 16px;
+            font-family: "Ma Shan Zheng", "PingFang SC", cursive;
+            margin-bottom: 30px;
+            text-align: center;
+            animation: hintPulse 2s ease-in-out infinite;
+            letter-spacing: 1px;
+        }
+        @keyframes hintPulse {
+            0%, 100% { opacity: 0.7; transform: translateY(0); }
+            50%      { opacity: 1; transform: translateY(-4px); }
+        }
+
+        /* CSS 信封 */
+        .envelope-box {
+            position: relative;
+            width: 240px;
+            height: 170px;
+            cursor: default;
+        }
+        /* 信封身体 */
+        .envelope-body-el {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 140px;
+            background: linear-gradient(180deg, #f9d5d8 0%, #f4bfc4 30%, #efb0b6 100%);
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 信封盖子 */
+        .envelope-flap-el {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 120px solid transparent;
+            border-right: 120px solid transparent;
+            border-top: 80px solid #e8a0a8;
+            z-index: 3;
+            transform-origin: top center;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        .envelope-flap-el.open {
+            transform: rotateX(180deg);
+        }
+
+        /* 信封内的信件（还没抽出时） */
+        .letter-peek {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 28px;
+            background: #fffef9;
+            border-radius: 4px;
+            z-index: 1;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* 打开按钮 */
+        .open-btn {
+            z-index: 5;
+            background: linear-gradient(135deg, #f43e5e, #e11d48);
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(244,62,94,0.35);
+            font-family: "Ma Shan Zheng", "PingFang SC", cursive;
+        }
+        .open-btn:hover {
+            transform: scale(1.06);
+            box-shadow: 0 6px 24px rgba(244,62,94,0.5);
+        }
+        .open-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* ---- 信件阶段 ---- */
+        .letter-scroll {
+            position: relative;
+            width: 90vw;
+            max-width: 520px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: #fffef7;
+            border-radius: 6px;
+            box-shadow:
+                0 2px 4px rgba(0,0,0,0.06),
+                0 8px 24px rgba(0,0,0,0.12),
+                0 20px 60px rgba(0,0,0,0.2);
+            padding: 36px 28px;
+            /* 信纸纹理 */
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 31px, #f0ece4 31px, #f0ece4 32px);
+            background-color: #fffef7;
+            font-family: "Ma Shan Zheng", "PingFang SC", cursive;
+            font-size: 19px;
+            line-height: 32px;
+            color: #4a3728;
+            animation: letterUnfold 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes letterUnfold {
+            0%   { transform: scaleY(0.1); opacity: 0; }
+            60%  { transform: scaleY(1.02); opacity: 1; }
+            100% { transform: scaleY(1); opacity: 1; }
+        }
+        .letter-scroll::-webkit-scrollbar { width: 4px; }
+        .letter-scroll::-webkit-scrollbar-thumb { background: #e8d5c4; border-radius: 2px; }
+
+        /* 打字光标 */
+        .typewriter-cursor {
+            display: inline-block;
+            color: #e11d48;
+            animation: blink 0.8s steps(1) infinite;
+            font-weight: bold;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0; }
+        }
+
+        /* 关闭按钮 */
+        .secret-close {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            z-index: 10;
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: #ccc;
+            font-size: 22px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .secret-close:hover {
+            background: rgba(255,255,255,0.16);
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- ==================== 首页 ==================== -->
+    <div id="page-home" class="page active">
+        <header class="hero-gradient relative flex items-center justify-center min-h-screen px-4">
+            <div style="position:absolute;top:12%;left:8%;font-size:40px;animation:float 6s ease-in-out infinite;">🌸</div>
+            <div style="position:absolute;top:18%;right:10%;font-size:28px;animation:float 7s ease-in-out 1s infinite;">✨</div>
+            <div style="position:absolute;bottom:20%;left:12%;font-size:32px;animation:float 7.5s ease-in-out 0.5s infinite;">💫</div>
+            <div style="position:absolute;bottom:25%;right:14%;font-size:36px;animation:float 6.5s ease-in-out 2s infinite;">🌷</div>
+            <div style="position:absolute;top:35%;left:20%;font-size:18px;animation:float 8s ease-in-out 1.5s infinite;">🕊️</div>
+            <div style="position:absolute;top:30%;right:18%;font-size:22px;animation:float 7s ease-in-out 3s infinite;">💗</div>
+
+            <div class="relative z-10 text-center max-w-2xl">
+                <p class="text-sm tracking-[0.3em] text-rose-300 mb-6 uppercase">Our Story</p>
+                <h1 class="text-5xl md:text-7xl font-bold tracking-wide mb-2" style="background:linear-gradient(135deg,#e11d48,#f43e5e,#fb7185);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+                    张楠 & 蔡思晗
+                </h1>
+                <p class="text-gray-500 mt-4 text-lg italic">"遇见的每一个日子，都值得被记录。"</p>
+
+                <div class="mt-10 inline-block bg-white/70 backdrop-blur-xl rounded-3xl px-8 py-5 shadow-sm border border-white/80">
+                    <span class="text-xs tracking-[0.2em] uppercase text-gray-400 block mb-1">我们已经在一起</span>
+                    <div class="flex items-baseline justify-center gap-1">
+                        <span id="together-days" class="text-5xl md:text-6xl font-bold" style="background:linear-gradient(135deg,#e11d48,#f43e5e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">0</span>
+                        <span class="text-xl text-gray-500">天</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">从<span id="lunar-date"></span>至今</p>
+                </div>
+            </div>
+
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-300 text-sm animate-bounce">
+                ↓ 往下看
+            </div>
+        </header>
+
+        <section class="max-w-4xl mx-auto px-4 -mt-20 relative z-20 pb-24">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="nav-card nav-card-daily bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-md border border-orange-50"
+                     onclick="showPage('daily')">
+                    <div class="text-5xl mb-5">📖</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">日常</h2>
+                    <p class="text-gray-500 text-sm leading-relaxed">记录我们在一起的<br>每一个平凡又珍贵的瞬间</p>
+                    <div class="mt-5 flex items-center gap-2 text-orange-400 text-sm font-medium">去看看 <span class="text-lg">→</span></div>
+                </div>
+                <div class="nav-card nav-card-journey bg-white/80 backdrop-blur-xl rounded-3xl p-8 shadow-md border border-blue-50"
+                     onclick="showPage('journey')">
+                    <div class="text-5xl mb-5">🧭</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">旅程</h2>
+                    <p class="text-gray-500 text-sm leading-relaxed">一起走过的每段旅途<br>都是我们故事的标记</p>
+                    <div class="mt-5 flex items-center gap-2 text-blue-400 text-sm font-medium">去看看 <span class="text-lg">→</span></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center pb-8 text-sm text-gray-300">
+            <span onclick="openSecret()" style="cursor:default;">Made with ❤ by 张楠</span> · <span id="footer-year">2026</span>
+        </footer>
+    </div>
+
+    <!-- ==================== 日常页 ==================== -->
+    <div id="page-daily" class="page daily-bg">
+        <nav class="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-orange-50">
+            <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button class="back-btn" onclick="showPage('home')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    返回
+                </button>
+                <h2 class="text-lg font-bold text-gray-800">📖 日常</h2>
+                <div class="w-16"></div>
+            </div>
+        </nav>
+        <main class="max-w-2xl mx-auto px-4 py-10" id="daily-container"></main>
+        <footer class="text-center pb-8 text-sm text-gray-300"><span onclick="openSecret()" style="cursor:default;">Made with ❤ by 张楠</span></footer>
+    </div>
+
+    <!-- ==================== 旅程页 ==================== -->
+    <div id="page-journey" class="page journey-bg">
+        <nav class="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-blue-50">
+            <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+                <button class="back-btn" onclick="showPage('home')">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    返回
+                </button>
+                <h2 class="text-lg font-bold text-gray-800">🧭 旅程</h2>
+                <div class="w-16"></div>
+            </div>
+        </nav>
+        <main class="max-w-4xl mx-auto px-4 py-10" id="journey-container"></main>
+        <footer class="text-center pb-8 text-sm text-gray-300"><span onclick="openSecret()" style="cursor:default;">Made with ❤ by 张楠</span></footer>
+    </div>
+
+    <!-- ==================== 旅程详情浮层 ==================== -->
+    <div id="journey-detail" style="display:none;"></div>
+
+    <!-- ==================== 灯箱 ==================== -->
+    <div id="lightbox" style="display:none;"></div>
+
+    <!-- ==================== 数据 ==================== -->
+    <script src="data.js"></script>
+
+    <!-- ==================== 主脚本 ==================== -->
+    <script>
+    // ---- 页面切换 ----
+    function showPage(name) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + name).classList.add('active');
+        document.getElementById('journey-detail').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ---- 天数计算 (从2024年元宵节: 2024-02-24) ----
+    (function() {
+        const startDate = new Date(2024, 1, 24);
+        const today = new Date();
+        const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+        document.getElementById('together-days').innerText = diffDays;
+        document.getElementById('lunar-date').innerText = '2024年元宵节（2月24日）';
+        document.getElementById('footer-year').innerText = today.getFullYear();
+    })();
+
+    // ---- 卡牌堆叠导航 ----
+    function stackNavigate(containerId, direction) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const items = container.querySelectorAll('.stack-item');
+        const total = items.length;
+        if (total <= 1) return;
+
+        let active = parseInt(container.dataset.active);
+        const newActive = direction === 'next'
+            ? Math.min(active + 1, total - 1)
+            : Math.max(active - 1, 0);
+        if (newActive === active) return;
+
+        setStackActive(container, items, newActive);
+    }
+
+    function setStackActive(container, items, activeIdx) {
+        const total = items.length;
+        container.dataset.active = activeIdx;
+
+        items.forEach((item, i) => {
+            // 清除所有状态类
+            item.classList.remove('stack-active', 'stack-next', 'stack-prev', 'stack-hidden');
+            if (i === activeIdx) {
+                item.classList.add('stack-active');
+            } else if (i === activeIdx + 1) {
+                item.classList.add('stack-next');
+            } else if (i === activeIdx - 1) {
+                item.classList.add('stack-prev');
+            } else {
+                item.classList.add('stack-hidden');
+            }
+        });
+
+        // 更新箭头状态
+        const leftArrow = container.querySelector('.stack-arrow-left');
+        const rightArrow = container.querySelector('.stack-arrow-right');
+        if (leftArrow) leftArrow.classList.toggle('hidden', activeIdx === 0);
+        if (rightArrow) rightArrow.classList.toggle('hidden', activeIdx === total - 1);
+
+        // 更新圆点
+        const dots = container.querySelectorAll('.stack-dot');
+        dots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+
+        // 更新配文
+        const captionEl = container.querySelector('.stack-caption-text');
+        const counterEl = container.querySelector('.stack-counter');
+        if (captionEl) {
+            const captions = JSON.parse(container.dataset.captions || '[]');
+            captionEl.style.opacity = '0';
+            setTimeout(() => {
+                captionEl.textContent = captions[activeIdx] || '';
+                captionEl.style.opacity = '1';
+            }, 200);
+        }
+        if (counterEl) {
+            counterEl.textContent = (activeIdx + 1) + ' / ' + total;
+        }
+    }
+
+    function stackJumpTo(containerId, index) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const items = container.querySelectorAll('.stack-item');
+        setStackActive(container, items, index);
+    }
+
+    // ---- 构建卡牌堆叠 HTML ----
+    function buildCardStack(folder, photos, stackId) {
+        if (!photos || photos.length === 0) return '';
+
+        const photoObjs = photos.map(p =>
+            typeof p === 'string'
+                ? { file: folder + '/' + p, caption: '' }
+                : { file: folder + '/' + p.file, caption: p.caption || '' }
+        );
+        const captions = photoObjs.map(p => p.caption);
+        const total = photoObjs.length;
+        const isSingle = total === 1;
+
+        let itemsHtml = photoObjs.map((p, i) => {
+            let cls = 'stack-hidden';
+            if (i === 0) cls = 'stack-active';
+            else if (i === 1) cls = 'stack-next';
+            return `
+                <div class="stack-item ${cls}" data-index="${i}">
+                    <img src="${p.file}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">
+                </div>`;
+        }).join('');
+
+        let arrowsHtml = '';
+        if (!isSingle) {
+            arrowsHtml = `
+                <button class="stack-arrow stack-arrow-left hidden" onclick="event.stopPropagation();stackNavigate('${stackId}','prev')" aria-label="上一张">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button class="stack-arrow stack-arrow-right" onclick="event.stopPropagation();stackNavigate('${stackId}','next')" aria-label="下一张">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>`;
+        }
+
+        let dotsHtml = '';
+        if (!isSingle && total > 1) {
+            dotsHtml = '<div class="stack-dots">' +
+                photoObjs.map((_, i) =>
+                    `<span class="stack-dot${i === 0 ? ' active' : ''}" onclick="event.stopPropagation();stackJumpTo('${stackId}',${i})"></span>`
+                ).join('') +
+                '</div>';
+        }
+
+        let captionHtml = '';
+        if (!isSingle && captions.some(c => c)) {
+            captionHtml = `
+                <div class="stack-caption-area">
+                    <p class="stack-caption-text">${captions[0] || ''}</p>
+                    <p class="stack-counter">1 / ${total}</p>
+                </div>`;
+        } else if (!isSingle) {
+            captionHtml = `
+                <div class="stack-caption-area">
+                    <p class="stack-caption-text"></p>
+                    <p class="stack-counter">1 / ${total}</p>
+                </div>`;
+        }
+
+        return `
+            <div class="stack-wrapper" id="${stackId}" data-active="0" data-captions='${JSON.stringify(captions)}' data-total="${total}">
+                <div class="stack-container">
+                    ${itemsHtml}
+                    ${arrowsHtml}
+                </div>
+                ${dotsHtml}
+                ${captionHtml}
+            </div>`;
+    }
+
+    // ---- 灯箱注册表 ----
+    window._lightboxRegistry = [];
+    let lightboxGroupId = 0;
+    let lightboxIndex = 0;
+
+    function registerLightbox(photos) {
+        const id = window._lightboxRegistry.length;
+        window._lightboxRegistry.push(photos);
+        return id;
+    }
+
+    function openLightbox(groupId, index) {
+        lightboxGroupId = groupId;
+        lightboxIndex = index;
+        renderLightbox();
+        document.getElementById('lightbox').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function lightboxPrev(e) { e.stopPropagation(); if (lightboxIndex > 0) { lightboxIndex--; renderLightbox(); } }
+    function lightboxNext(e) { e.stopPropagation(); const p = window._lightboxRegistry[lightboxGroupId]; if (p && lightboxIndex < p.length-1) { lightboxIndex++; renderLightbox(); } }
+
+    function renderLightbox() {
+        const photos = window._lightboxRegistry[lightboxGroupId];
+        if (!photos) return;
+        const p = photos[lightboxIndex];
+        const src = typeof p === 'string' ? p : p.file;
+        const cap = typeof p === 'object' && p.caption ? p.caption : '';
+        const hp = lightboxIndex > 0;
+        const hn = lightboxIndex < photos.length - 1;
+
+        document.getElementById('lightbox').innerHTML = `
+            <div class="lightbox" onclick="closeLightbox()">
+                ${hp ? '<div class="lightbox-nav lightbox-prev" onclick="lightboxPrev(event)">‹</div>' : ''}
+                <img src="${src}" onclick="event.stopPropagation()">
+                ${hn ? '<div class="lightbox-nav lightbox-next" onclick="lightboxNext(event)">›</div>' : ''}
+                <div class="lightbox-close" onclick="closeLightbox()">✕</div>
+                ${cap ? '<div class="lightbox-caption">' + cap + '</div>' : ''}
+                <div style="position:absolute;top:16px;left:50%;transform:translateX(-50%);color:#999;font-size:13px">${lightboxIndex+1}/${photos.length}</div>
+            </div>`;
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (document.getElementById('lightbox').style.display === 'flex') {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft' && lightboxIndex > 0) { lightboxIndex--; renderLightbox(); }
+            const p = window._lightboxRegistry[lightboxGroupId];
+            if (e.key === 'ArrowRight' && p && lightboxIndex < p.length-1) { lightboxIndex++; renderLightbox(); }
+        }
+    });
+
+    // ---- 构建照片对象 ----
+    function buildPhotoObjs(folder, photos) {
+        return photos.map(p =>
+            typeof p === 'string' ? { file: folder + '/' + p } : { file: folder + '/' + p.file, caption: p.caption || '' }
+        );
+    }
+
+    // ---- 渲染日常 ----
+    let dailyStackCounter = 0;
+    function renderDaily() {
+        const container = document.getElementById('daily-container');
+        const data = SITE_DATA.daily;
+        window._lightboxRegistry = [];
+        dailyStackCounter = 0;
+
+        let html = '';
+        data.forEach((item, idx) => {
+            const photoObjs = buildPhotoObjs(item.folder, item.photos);
+            const lbGroupId = registerLightbox(photoObjs);
+            const stackId = 'dstack-' + (dailyStackCounter++);
+
+            // 点击当前照片打开灯箱
+            const stackHtml = buildCardStack(item.folder, item.photos, stackId);
+
+            html += `
+                <div class="daily-card mb-8 p-6 md:p-8" style="animation: fadeSlideIn 0.5s ease ${idx * 0.1}s both;">
+                    <div class="flex items-center gap-3 flex-wrap mb-4">
+                        <span class="daily-date">${item.date}</span>
+                        <h3 class="text-xl font-bold text-gray-800">${item.title}</h3>
+                    </div>
+                    <div onclick="event.stopPropagation();openLightbox(${lbGroupId}, parseInt(document.getElementById('${stackId}').dataset.active || '0'))" style="cursor:pointer;">
+                        ${stackHtml}
+                    </div>
+                    <p class="mt-5 text-gray-600 leading-relaxed text-sm whitespace-pre-line">${item.text}</p>
+                </div>`;
+        });
+
+        container.innerHTML = html || '<p class="text-center text-gray-400 py-20">还没有日常记录，敬请期待~</p>';
+    }
+
+    // ---- 渲染旅程封面 ----
+    let journeyStackCounter = 0;
+    function renderJourneyCovers() {
+        const container = document.getElementById('journey-container');
+        const data = SITE_DATA.journeys;
+        window._lightboxRegistry = [];
+        journeyStackCounter = 0;
+
+        let html = '<div class="cover-grid">';
+        data.forEach((item, idx) => {
+            // 取第一张照片做封面
+            const firstPhoto = item.photos[0];
+            const coverSrc = item.folder + '/' + (typeof firstPhoto === 'string' ? firstPhoto : firstPhoto.file);
+
+            html += `
+                <div class="cover-card" onclick="openJourneyDetail(${idx})" style="animation: fadeSlideIn 0.5s ease ${idx * 0.1}s both;">
+                    <img src="${coverSrc}" alt="${item.title}" loading="lazy" onerror="this.style.minHeight='200px'">
+                    <div class="cover-overlay"></div>
+                    <div class="cover-content">
+                        <span class="cover-location">${item.location}</span>
+                        <h3 class="cover-title">${item.title}</h3>
+                        <p class="cover-date">${item.date}</p>
+                    </div>
+                </div>`;
+        });
+        html += '</div>';
+
+        container.innerHTML = html || '<p class="text-center text-gray-400 py-20">还没有旅程记录，敬请期待~</p>';
+    }
+
+    // ---- 旅程详情浮层 ----
+    function openJourneyDetail(index) {
+        const data = SITE_DATA.journeys;
+        const item = data[index];
+        if (!item) return;
+
+        const photoObjs = buildPhotoObjs(item.folder, item.photos);
+        window._lightboxRegistry = [];
+        const lbGroupId = registerLightbox(photoObjs);
+        const stackId = 'jstack-detail';
+        const total = data.length;
+        const stackHtml = buildCardStack(item.folder, item.photos, stackId);
+
+        const detailEl = document.getElementById('journey-detail');
+        detailEl.innerHTML = `
+            <div class="journey-overlay">
+                <div class="overlay-header">
+                    <div class="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
+                        <button class="back-btn" onclick="closeJourneyDetail()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            返回旅程列表
+                        </button>
+                        <span class="text-sm text-gray-400">${index + 1} / ${total}</span>
+                    </div>
+                </div>
+
+                <div class="max-w-2xl mx-auto px-4 py-8">
+                    <div class="flex items-center gap-3 flex-wrap mb-1">
+                        <span class="cover-location" style="background:#f0f0f0;color:#666;backdrop-filter:none;">${item.location}</span>
+                        <span class="text-sm text-gray-400">${item.date}</span>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6">${item.title}</h2>
+
+                    <div onclick="event.stopPropagation();openLightbox(${lbGroupId}, parseInt(document.getElementById('${stackId}').dataset.active || '0'))" style="cursor:pointer;">
+                        ${stackHtml}
+                    </div>
+
+                    <p class="mt-8 text-gray-600 leading-relaxed whitespace-pre-line">${item.text}</p>
+
+                    <!-- 上一篇 / 下一篇 -->
+                    <div class="mt-12 pt-8 border-t border-gray-100 flex justify-between items-center">
+                        ${index > 0 ? `
+                            <button class="text-sm text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
+                                    onclick="openJourneyDetail(${index - 1})">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                                上一段旅程
+                            </button>
+                        ` : '<div></div>'}
+                        ${index < total - 1 ? `
+                            <button class="text-sm text-gray-500 hover:text-gray-800 transition-colors flex items-center gap-1"
+                                    onclick="openJourneyDetail(${index + 1})">
+                                下一段旅程
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                            </button>
+                        ` : '<div></div>'}
+                    </div>
+                </div>
+            </div>
+        `;
+        detailEl.style.display = 'block';
+        detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeJourneyDetail() {
+        document.getElementById('journey-detail').style.display = 'none';
+        document.getElementById('journey-detail').innerHTML = '';
+    }
+
+    // ---- 隐藏信封 ----
+    const LETTER_TEXT = [
+        "亲爱的宝宝💗\n\n",
+        "真的好抱歉呀，今年的礼物🎁又又叒没有准时送到你的手里，真的是我的一大失职！\n\n",
+        "其实我本来只是想着像上几次那样，写一封手写信给你的。但是后来我想呀，写了信宝宝你可能会好好收起来，可是想看的时候又不一定在手边。所以我就有了一个新想法——做一个专属于我们的回忆网站！✨\n\n",
+        "这样宝宝在手机上也随时可以翻看啦（毕竟宝宝其实还是爱看手机的嘛📱），学习学累的时候、排队的时候、甚至睡前（虽然我知道这个可能不太可能啦😊）的时候……想我的时候就可以打开看看。嘿嘿(੭˙ᗜ˙)੭\n\n",
+        "我也不知道宝宝你会不会喜欢这个礼物，但我觉得至少它真的很有意义呀✧٩(ˊωˋ*)و✧\n\n",
+        "宝宝你看，这里面的每一张照片、每一段文字，都是我们真真实实一起走过的日子。从我们认识的那个地方，到清远的夕阳，到佛山的摩天轮，到珠海的海风……还有那些看似平凡却闪闪发光的日常——这些我每次看都会感到一股暖流，一种“宝宝有你在我身边真的好幸福的感觉”……\n\n",
+        "以后的每一次经历，我都会把它们记录下来的！因为我们的故事还有很长很长很长呢٩(๑^o^๑)۶\n\n",
+        "我不能让这些珍贵的回忆只停留在脑海里，我想把它们留下来，留很久很久很久。等到我们都老了，还可以一起翻看这个网站，然后笑着跟对方说——\"哇，那个时候的我们好傻，但是好甜呀！\"（虽然感觉不太可能啦，但是我还是美美幻想一下吧😁）\n\n",
+        "宝宝，谢谢你一路以来的陪伴。遇到你，真的是我这一辈子，最最最幸运的事！！！\n\n",
+        "永远爱你的\n张楠"
+    ];
+
+    let typewriterTimer = null;
+    let typewriterIndex = 0;
+
+    function openSecret() {
+        const overlay = document.getElementById('secret-overlay');
+        overlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        // 重置状态
+        document.getElementById('phase-envelope').classList.add('active');
+        document.getElementById('phase-letter').classList.remove('active');
+        document.getElementById('envelope-flap').classList.remove('open');
+        document.getElementById('secret-close-btn').style.display = 'none';
+        document.getElementById('typewriter-content').textContent = '';
+        document.getElementById('typewriter-cursor').style.display = 'inline-block';
+        if (typewriterTimer) clearTimeout(typewriterTimer);
+        typewriterIndex = 0;
+        generateParticles();
+    }
+
+    function closeSecret() {
+        const overlay = document.getElementById('secret-overlay');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
+        if (typewriterTimer) clearTimeout(typewriterTimer);
+    }
+
+    function openEnvelope() {
+        // 1. 信封盖子翻开
+        document.getElementById('envelope-flap').classList.add('open');
+        document.getElementById('secret-close-btn').style.display = 'flex';
+
+        // 2. 短暂延迟后切换阶段
+        setTimeout(() => {
+            document.getElementById('phase-envelope').classList.remove('active');
+            document.getElementById('phase-letter').classList.add('active');
+
+            // 3. 开始打字
+            setTimeout(() => {
+                typewriterIndex = 0;
+                document.getElementById('typewriter-content').textContent = '';
+                typeNextChar();
+            }, 500);
+        }, 800);
+    }
+
+    function typeNextChar() {
+        const allText = LETTER_TEXT.join('');
+        const contentEl = document.getElementById('typewriter-content');
+        const cursorEl = document.getElementById('typewriter-cursor');
+        const scrollEl = document.getElementById('letter-scroll');
+
+        if (typewriterIndex < allText.length) {
+            contentEl.textContent = allText.substring(0, typewriterIndex + 1);
+            typewriterIndex++;
+            // 自动滚动
+            scrollEl.scrollTop = scrollEl.scrollHeight;
+            // 变速打字
+            const char = allText[typewriterIndex - 1];
+            let delay = 80;
+            if (char === '\n') delay = 200;
+            else if ('，。！？、…—"」'.includes(char)) delay = 160;
+            else if ('💗🎁✨📱✧٩(ˊωˋ*)و🧭📖'.includes(char)) delay = 180;
+            typewriterTimer = setTimeout(typeNextChar, delay);
+        } else {
+            // 打完，隐藏光标
+            cursorEl.style.display = 'none';
+        }
+    }
+
+    function generateParticles() {
+        const container = document.getElementById('secret-particles');
+        const emojis = ['💗', '🌸', '✨', '💫', '🕊️', '🌷', '💌', '💕', '🌟', '🦋'];
+        let html = '';
+        for (let i = 0; i < 25; i++) {
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const left = Math.random() * 100;
+            const top = Math.random() * 100;
+            const delay = Math.random() * 8;
+            const size = 10 + Math.random() * 16;
+            html += `<span class="secret-particle" style="left:${left}%;top:${top}%;animation-delay:${delay}s;font-size:${size}px;">${emoji}</span>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // ---- 初始化 ----
+    (function init() {
+        renderDaily();
+        renderJourneyCovers();
+    })();
+    </script>
+
+    <!-- ==================== 隐藏信封 ==================== -->
+    <div id="secret-overlay">
+        <!-- 背景浮动粒子 -->
+        <div class="secret-particles" id="secret-particles"></div>
+
+        <!-- 关闭按钮 -->
+        <button class="secret-close" onclick="closeSecret()" id="secret-close-btn" style="display:none;">✕</button>
+
+        <!-- 阶段1：信封 -->
+        <div class="secret-phase active" id="phase-envelope">
+            <div class="ripple-container">
+                <div class="ripple-ring"></div>
+                <div class="ripple-ring"></div>
+                <div class="ripple-ring"></div>
+            </div>
+            <p class="envelope-hint">没想到还是让宝宝发现这个地方了呀嘿嘿💗</p>
+            <div class="envelope-box">
+                <div class="envelope-flap-el" id="envelope-flap"></div>
+                <div class="envelope-body-el">
+                    <div class="letter-peek"></div>
+                    <button class="open-btn" onclick="openEnvelope()">💌 打开信封</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 阶段2：信件 -->
+        <div class="secret-phase" id="phase-letter">
+            <div class="letter-scroll" id="letter-scroll">
+                <div id="typewriter-content"></div>
+                <span class="typewriter-cursor" id="typewriter-cursor">|</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
