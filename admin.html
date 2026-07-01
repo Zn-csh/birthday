@@ -19,34 +19,42 @@
         .btn-outline:hover { background: #f9fafb; }
         .btn-sm { padding: 6px 14px; font-size: 12px; }
         .btn:disabled { opacity: 0.5; pointer-events: none; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 14px; z-index: 999; animation: fadeSlideIn 0.3s ease; }
-        .toast-success { background: #065f46; color: #fff; }
-        .toast-error { background: #991b1b; color: #fff; }
-        .toast-info { background: #1e3a5f; color: #fff; }
-        .progress-bar { height: 4px; background: #f43e5e; border-radius: 2px; transition: width 0.3s; }
-        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-        .status-dot.idle { background: #d1d5db; }
-        .status-dot.uploading { background: #f59e0b; animation: pulse 1s infinite; }
-        .status-dot.success { background: #10b981; }
-        .status-dot.error { background: #ef4444; }
+        .screen { display: none; }
+        .screen.on { display: block; }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 14px; z-index: 999; animation: slide 0.3s ease; color: #fff; }
+        .toast-ok { background: #065f46; }
+        .toast-err { background: #991b1b; }
+        .toast-info { background: #1e3a5f; }
+        @keyframes slide { from{opacity:0;transform:translateY(20px) translateX(-50%);} to{opacity:1;transform:translateY(0) translateX(-50%);} }
+        .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .dot-idle { background: #d1d5db; }
+        .dot-busy { background: #f59e0b; animation: pulse 1s infinite; }
+        .dot-ok { background: #10b981; }
+        .dot-err { background: #ef4444; }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-        @keyframes fadeSlideIn { from{opacity:0;transform:translateY(20px) translateX(-50%);} to{opacity:1;transform:translateY(0) translateX(-50%);} }
+        .progress { height: 4px; background: #f43e5e; border-radius: 2px; transition: width 0.3s; }
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .tag-daily { background: #fff7ed; color: #c2410c; }
+        .tag-journey { background: #eff6ff; color: #2563eb; }
+        .tab-btn { padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 1.5px solid #e5e7eb; cursor: pointer; transition: all 0.2s; background: #f9fafb; color: #6b7280; }
+        .tab-btn.on-daily { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+        .tab-btn.on-journey { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
     </style>
 </head>
 <body class="antialiased">
 
 <div class="max-w-2xl mx-auto px-4 py-8">
 
-    <!-- ====== 首次设置 ====== -->
-    <div id="screen-setup" style="display:none;">
+    <!-- ====== 1. 首次设置 ====== -->
+    <div id="screen-setup" class="screen">
         <div class="card">
-            <h1 class="text-2xl font-bold text-gray-800 mb-6">🔧 首次设置</h1>
-            <p class="text-sm text-gray-500 mb-6">需要连接 GitHub 仓库才能在线发布内容。请先创建 GitHub 仓库并获取 Token。</p>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">🔧 首次设置</h1>
+            <p class="text-sm text-gray-400 mb-6">连接 GitHub 仓库以启用在线发布。Token 获取：GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token，勾选 <b>repo</b> 权限。</p>
 
             <div class="space-y-4 mb-6">
                 <div>
                     <label>GitHub 用户名</label>
-                    <input type="text" id="cfg-user" placeholder="例如：zhangnan">
+                    <input type="text" id="cfg-user" placeholder="例如：Zn-csh">
                 </div>
                 <div>
                     <label>仓库名</label>
@@ -55,34 +63,35 @@
                 <div>
                     <label>Personal Access Token</label>
                     <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx">
-                    <p class="text-xs text-gray-400 mt-1">
-                        获取方式：GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token，勾选 <b>repo</b> 权限
-                    </p>
                 </div>
                 <div>
                     <label>管理密码</label>
                     <input type="password" id="cfg-password" placeholder="设置一个只有你知道的密码">
                 </div>
+                <div>
+                    <label>网站访问密码 <span class="text-gray-300 font-normal">（设空则无需密码即可访问）</span></label>
+                    <input type="password" id="cfg-site-pw" placeholder="让宝宝输入的密码，留空则表示无需密码">
+                </div>
             </div>
-            <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+            <button class="btn btn-primary" onclick="doSaveConfig()">保存配置</button>
         </div>
     </div>
 
-    <!-- ====== 登录 ====== -->
-    <div id="screen-login">
+    <!-- ====== 2. 登录 ====== -->
+    <div id="screen-login" class="screen">
         <div class="card text-center">
             <h1 class="text-2xl font-bold text-gray-800 mb-2">🔐 后台管理</h1>
             <p class="text-sm text-gray-400 mb-6">张楠 & 蔡思晗 · 回忆网站</p>
             <div class="max-w-xs mx-auto">
                 <input type="password" id="login-password" placeholder="请输入管理密码" class="text-center mb-4">
                 <button class="btn btn-primary w-full" onclick="doLogin()">进入后台</button>
-                <p class="text-xs text-gray-400 mt-3 cursor-pointer hover:text-gray-600" onclick="showSetup()">⚙️ 重新设置</p>
+                <p class="text-xs text-gray-400 mt-3 cursor-pointer hover:text-gray-600" onclick="goSetup()">⚙️ 重新设置</p>
             </div>
         </div>
     </div>
 
-    <!-- ====== 管理面板 ====== -->
-    <div id="screen-dashboard" style="display:none;">
+    <!-- ====== 3. 管理面板 ====== -->
+    <div id="screen-dashboard" class="screen">
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-2xl font-bold text-gray-800">📋 内容管理</h1>
             <div class="flex items-center gap-4">
@@ -95,20 +104,34 @@
         <div class="card">
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="status-dot idle" id="status-dot"></span>
+                    <span class="dot dot-idle" id="status-dot"></span>
                     <span class="text-sm text-gray-600" id="status-text">就绪</span>
                 </div>
-                <a href="birthday.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-600">预览网站 →</a>
+                <a href="index.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-600">预览网站 →</a>
             </div>
-            <div class="progress-bar mt-3" style="width:0%;" id="progress-bar"></div>
+            <div class="progress mt-3" style="width:0%;" id="progress-bar"></div>
         </div>
 
-        <!-- 表单 -->
+        <!-- 网站密码 -->
         <div class="card">
-            <!-- 板块选择 -->
+            <h3 class="font-bold text-gray-700 mb-3">🔒 网站访问密码</h3>
+            <div class="flex gap-3 items-end">
+                <div style="flex:1;">
+                    <label style="font-size:12px;">密码（留空 = 无需密码，任何人都能看）</label>
+                    <input type="text" id="dashboard-site-pw" placeholder="当前无密码">
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="updateSitePassword()">更新密码</button>
+            </div>
+            <p class="text-xs text-gray-400 mt-2" id="site-pw-status"></p>
+        </div>
+
+        <!-- 添加内容 -->
+        <div class="card">
+            <h3 class="font-bold text-gray-700 mb-4">✏️ 添加新内容</h3>
+
             <div class="flex gap-3 mb-5">
-                <button class="btn btn-sm" id="tab-daily" style="background:#fff7ed;color:#c2410c;border-color:#fed7aa;" onclick="switchTab('daily')">📖 添加日常</button>
-                <button class="btn btn-sm" id="tab-journey" style="background:#f9fafb;color:#6b7280;border-color:#e5e7eb;" onclick="switchTab('journey')">🧭 添加旅程</button>
+                <button class="tab-btn on-daily" id="tab-daily" onclick="switchTab('daily')">📖 日常</button>
+                <button class="tab-btn" id="tab-journey" onclick="switchTab('journey')">🧭 旅程</button>
             </div>
 
             <input type="hidden" id="entry-type" value="daily">
@@ -140,369 +163,371 @@
                 <textarea id="entry-text" rows="3" placeholder="在这里写下你的感受..."></textarea>
             </div>
 
-            <!-- 照片上传 -->
             <div class="mb-4">
-                <label>照片 <span class="text-gray-300 font-normal">（选择本地照片，可多选）</span></label>
+                <label>照片 *（多选）</label>
                 <input type="file" id="photo-files" multiple accept="image/*" class="mb-2" onchange="previewPhotos()">
                 <div id="photo-preview" class="flex gap-2 flex-wrap"></div>
-                <!-- 照片配文（仅旅程） -->
                 <div id="photo-captions" style="display:none;" class="mt-3 space-y-2"></div>
             </div>
 
-            <button class="btn btn-primary" id="publish-btn" onclick="publish()">🚀 发布到网站</button>
-            <p class="text-xs text-gray-400 mt-2">发布后等待约 30 秒，刷新网站即可看到新内容</p>
+            <button class="btn btn-primary" id="publish-btn" onclick="doPublish()">🚀 发布到网站</button>
+            <p class="text-xs text-gray-400 mt-2">发布后约 30 秒刷新网站即可看到新内容</p>
         </div>
 
-        <!-- 最近操作日志 -->
+        <!-- 日志 -->
         <div class="card">
             <h3 class="font-bold text-gray-700 mb-3">📝 操作日志</h3>
             <div id="log-list" class="text-xs text-gray-400 space-y-1 max-h-40 overflow-y-auto">
-                <p>等待操作...</p>
+                <p>就绪，等待操作...</p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ========== 存储 ==========
-    const STORAGE_KEY = 'birthday_admin_config';
+// ========== 存储 ==========
+const KEY = 'bday_admin';
 
-    function getConfig() {
-        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; }
-    }
-    function saveConfigToStore(cfg) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
-    }
+function cfg() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { return {}; }
+}
+function cfgSave(obj) { localStorage.setItem(KEY, JSON.stringify(obj)); }
 
-    // ========== 页面状态 ==========
-    let currentTab = 'daily';
-
-    function showScreen(id) {
-        ['screen-setup','screen-login','screen-dashboard'].forEach(s => {
-            document.getElementById(s).style.display = s === id ? 'block' : 'none';
-        });
-    }
-
-    function init() {
-        const cfg = getConfig();
-        if (!cfg.user || !cfg.repo || !cfg.token || !cfg.password) {
-            showScreen('setup');
-            document.getElementById('screen-setup').style.display = 'block';
-            document.getElementById('screen-login').style.display = 'none';
-        } else {
-            showScreen('login');
-            document.getElementById('repo-info').textContent = cfg.user + '/' + cfg.repo;
-        }
-        document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
-    }
-
-    function showSetup() {
-        const cfg = getConfig();
-        document.getElementById('cfg-user').value = cfg.user || '';
-        document.getElementById('cfg-repo').value = cfg.repo || '';
-        document.getElementById('cfg-token').value = cfg.token || '';
-        document.getElementById('cfg-password').value = cfg.password || '';
-        showScreen('setup');
-        document.getElementById('screen-setup').style.display = 'block';
-        document.getElementById('screen-login').style.display = 'none';
-    }
-
-    function saveConfig() {
-        const cfg = {
-            user: document.getElementById('cfg-user').value.trim(),
-            repo: document.getElementById('cfg-repo').value.trim(),
-            token: document.getElementById('cfg-token').value.trim(),
-            password: document.getElementById('cfg-password').value.trim()
-        };
-        if (!cfg.user || !cfg.repo || !cfg.token || !cfg.password) {
-            showToast('请填写所有字段', 'error');
-            return;
-        }
-        saveConfigToStore(cfg);
-        document.getElementById('repo-info').textContent = cfg.user + '/' + cfg.repo;
-        showToast('✅ 配置已保存', 'success');
-        showScreen('login');
-    }
-
-    function doLogin() {
-        const cfg = getConfig();
-        const pw = document.getElementById('login-password').value;
-        if (pw === cfg.password) {
-            showScreen('dashboard');
-        } else {
-            showToast('密码错误', 'error');
-        }
-    }
-
-    function doLogout() {
-        showScreen('login');
-        document.getElementById('login-password').value = '';
-    }
-
-    function switchTab(tab) {
-        currentTab = tab;
-        document.getElementById('entry-type').value = tab;
-        document.getElementById('location-field').style.display = tab === 'journey' ? 'block' : 'none';
-        document.getElementById('photo-captions').style.display = tab === 'journey' ? 'block' : 'none';
-
-        document.getElementById('tab-daily').style.background = tab === 'daily' ? '#fff7ed' : '#f9fafb';
-        document.getElementById('tab-daily').style.color = tab === 'daily' ? '#c2410c' : '#6b7280';
-        document.getElementById('tab-daily').style.borderColor = tab === 'daily' ? '#fed7aa' : '#e5e7eb';
-
-        document.getElementById('tab-journey').style.background = tab === 'journey' ? '#eff6ff' : '#f9fafb';
-        document.getElementById('tab-journey').style.color = tab === 'journey' ? '#2563eb' : '#6b7280';
-        document.getElementById('tab-journey').style.borderColor = tab === 'journey' ? '#bfdbfe' : '#e5e7eb';
-
-        updatePhotoCaptions();
-    }
-
-    // ========== 照片处理 ==========
-    let selectedFiles = [];
-
-    function previewPhotos() {
-        const input = document.getElementById('photo-files');
-        selectedFiles = Array.from(input.files);
-
-        const preview = document.getElementById('photo-preview');
-        preview.innerHTML = selectedFiles.map((f, i) => `
-            <div class="relative" style="width:80px;height:80px;border-radius:10px;overflow:hidden;background:#f3f4f6;">
-                <img src="${URL.createObjectURL(f)}" style="width:100%;height:100%;object-fit:cover;">
-                <span style="position:absolute;top:2px;right:4px;font-size:10px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5);">${i+1}</span>
-            </div>
-        `).join('') || '<span class="text-xs text-gray-400">未选择照片</span>';
-
-        updatePhotoCaptions();
-    }
-
-    function updatePhotoCaptions() {
-        const container = document.getElementById('photo-captions');
-        if (currentTab !== 'journey' || selectedFiles.length === 0) {
-            container.innerHTML = '';
-            return;
-        }
-        container.innerHTML = selectedFiles.map((f, i) => `
-            <div>
-                <label style="font-size:12px;color:#888;">照片 ${i+1} 配文（${f.name}）</label>
-                <input type="text" class="photo-caption" data-index="${i}" placeholder="给这张照片写一段描述..." style="font-size:13px;">
-            </div>
-        `).join('');
-    }
-
-    // ========== GitHub API ==========
-    function getApiBase() {
-        const cfg = getConfig();
-        return `https://api.github.com/repos/${cfg.user}/${cfg.repo}`;
-    }
-
-    function getAuthHeaders() {
-        const cfg = getConfig();
-        return {
-            'Authorization': 'Bearer ' + cfg.token,
-            'Accept': 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28'
-        };
-    }
-
-    async function githubGet(path) {
-        const resp = await fetch(`${getApiBase()}/contents/${path}`, {
-            headers: getAuthHeaders()
-        });
-        if (!resp.ok) throw new Error(`获取 ${path} 失败: ${resp.status}`);
-        return resp.json();
-    }
-
-    async function githubPut(path, contentBase64, message, sha) {
-        const body = { message, content: contentBase64 };
-        if (sha) body.sha = sha;
-        const resp = await fetch(`${getApiBase()}/contents/${path}`, {
-            method: 'PUT',
-            headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-        if (!resp.ok) {
-            const err = await resp.json().catch(() => ({}));
-            throw new Error(`上传 ${path} 失败: ${resp.status} ${err.message || ''}`);
-        }
-        return resp.json();
-    }
-
-    function fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
-    function escapeJS(str) {
-        return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
-    }
-
-    // ========== 发布 ==========
-    async function publish() {
-        const cfg = getConfig();
-        const type = document.getElementById('entry-type').value;
-        const folder = document.getElementById('entry-folder').value.trim();
-        const title = document.getElementById('entry-title').value.trim();
-        const date = document.getElementById('entry-date').value;
-        const location = document.getElementById('entry-location').value.trim();
-        const text = document.getElementById('entry-text').value.trim();
-
-        if (!folder || !title || !date || !text || selectedFiles.length === 0) {
-            showToast('请填写所有必填字段并选择至少一张照片', 'error');
-            return;
-        }
-
-        const btn = document.getElementById('publish-btn');
-        btn.disabled = true;
-        btn.textContent = '⏳ 发布中...';
-        setStatus('uploading', '正在上传...');
-        setProgress(0);
-        clearLog();
-
-        try {
-            const totalSteps = selectedFiles.length + 1; // photos + data.js
-            let completedSteps = 0;
-
-            // 1. 上传照片到 GitHub
-            const photoNames = [];
-            for (let i = 0; i < selectedFiles.length; i++) {
-                const file = selectedFiles[i];
-                const safeName = file.name.replace(/[^a-zA-Z0-9一-鿿\.\-_]/g, '_');
-                const path = `${folder}/${safeName}`;
-                const content = await fileToBase64(file);
-                addLog(`📤 上传照片: ${path}`);
-                await githubPut(path, content, `添加照片: ${path}`);
-                photoNames.push(safeName);
-                completedSteps++;
-                setProgress(Math.round((completedSteps / totalSteps) * 100));
-            }
-
-            // 2. 获取当前 data.js
-            addLog(`📥 读取 data.js...`);
-            const dataJsFile = await githubGet('data.js');
-            const currentContent = atob(dataJsFile.content);
-            setProgress(Math.round((completedSteps / totalSteps) * 50));
-
-            // 3. 生成新条目
-            let newEntry;
-            if (type === 'daily') {
-                newEntry = `\n    {\n      folder: "${folder}",\n      title: "${title}",\n      date: "${date}",\n      text: "${escapeJS(text)}",\n      photos: [${photoNames.map(p => `"${p}"`).join(', ')}]\n    },`;
-            } else {
-                const captions = [];
-                document.querySelectorAll('.photo-caption').forEach(inp => {
-                    const c = inp.value.trim();
-                    if (c) captions.push({ index: parseInt(inp.dataset.index), caption: c });
-                });
-                const photoEntries = photoNames.map((name, i) => {
-                    const cap = captions.find(c => c.index === i);
-                    if (cap) return `{ file: "${name}", caption: "${escapeJS(cap.caption)}" }`;
-                    return `"${name}"`;
-                });
-                newEntry = `\n    {\n      folder: "${folder}",\n      title: "${title}",\n      location: "${location}",\n      date: "${date}",\n      text: "${escapeJS(text)}",\n      photos: [${photoEntries.join(', ')}]\n    },`;
-            }
-
-            // 4. 找到对应数组的结束位置并插入
-            const arrayKey = type === 'daily' ? 'daily' : 'journeys';
-            // 找到数组的最后一个 ] 之前的位置插入
-            const arrayStartMarker = `${arrayKey}: [`;
-            const arrayStartIdx = currentContent.indexOf(arrayStartMarker);
-            if (arrayStartIdx === -1) throw new Error(`找不到 ${arrayKey} 数组`);
-
-            // 找到对应的结束 ] —— 找到下一个同级 ]
-            let depth = 0;
-            let insertIdx = -1;
-            let inArray = false;
-            for (let i = arrayStartIdx; i < currentContent.length; i++) {
-                if (currentContent[i] === '[') { depth++; inArray = true; }
-                else if (currentContent[i] === ']') {
-                    depth--;
-                    if (inArray && depth === 0) {
-                        insertIdx = i;
-                        break;
-                    }
-                }
-            }
-            if (insertIdx === -1) throw new Error(`无法解析 ${arrayKey} 数组`);
-
-            const newContent = currentContent.substring(0, insertIdx) + newEntry + '\n  ' + currentContent.substring(insertIdx);
-            const newContentBase64 = btoa(unescape(encodeURIComponent(newContent)));
-            addLog(`📝 更新 data.js，新增一条${type === 'daily' ? '日常' : '旅程'}记录`);
-
-            await githubPut('data.js', newContentBase64, `添加${type === 'daily' ? '日常' : '旅程'}: ${title}`, dataJsFile.sha);
-            completedSteps++;
-            setProgress(100);
-            setStatus('success', '✅ 发布成功！');
-            addLog(`✅ 全部完成！30 秒后刷新网站即可看到新内容`);
-            showToast('✅ 发布成功！稍后刷新网站即可看到', 'success');
-
-            // 重置表单
-            document.getElementById('entry-folder').value = '';
-            document.getElementById('entry-title').value = '';
-            document.getElementById('entry-text').value = '';
-            document.getElementById('entry-location').value = '';
-            document.getElementById('photo-files').value = '';
-            document.getElementById('photo-preview').innerHTML = '';
-            document.getElementById('photo-captions').innerHTML = '';
-            selectedFiles = [];
-        } catch (err) {
-            setStatus('error', '❌ ' + err.message);
-            addLog(`❌ 错误: ${err.message}`);
-            showToast('❌ 发布失败: ' + err.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = '🚀 发布到网站';
-        }
-    }
-
-    // ========== UI 辅助 ==========
-    function setStatus(state, text) {
-        const dot = document.getElementById('status-dot');
-        dot.className = 'status-dot ' + state;
-        document.getElementById('status-text').textContent = text;
-    }
-
-    function setProgress(pct) {
-        document.getElementById('progress-bar').style.width = pct + '%';
-    }
-
-    function addLog(msg) {
-        const list = document.getElementById('log-list');
-        if (list.querySelector('p') && list.querySelector('p').textContent === '等待操作...') {
-            list.innerHTML = '';
-        }
-        const p = document.createElement('p');
-        p.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-        list.appendChild(p);
-        list.scrollTop = list.scrollHeight;
-    }
-
-    function clearLog() {
-        document.getElementById('log-list').innerHTML = '';
-    }
-
-    function showToast(msg, type) {
-        const existing = document.querySelector('.toast');
-        if (existing) existing.remove();
-        const t = document.createElement('div');
-        t.className = 'toast toast-' + type;
-        t.textContent = msg;
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 3000);
-    }
-
-    // 回车登录
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            const loginScreen = document.getElementById('screen-login');
-            if (loginScreen.style.display !== 'none') {
-                doLogin();
-            }
-        }
+// ========== 页面切换 ==========
+function show(id) {
+    ['screen-setup','screen-login','screen-dashboard'].forEach(function(s) {
+        var el = document.getElementById(s);
+        if (s === id) { el.classList.add('on'); }
+        else { el.classList.remove('on'); }
     });
+}
 
-    init();
+// ========== 初始化 ==========
+(function init() {
+    var c = cfg();
+    if (!c.user || !c.repo || !c.token || !c.password) {
+        show('setup');
+        // 回填已保存的部分
+        if (c.user) document.getElementById('cfg-user').value = c.user;
+        if (c.repo) document.getElementById('cfg-repo').value = c.repo;
+        if (c.token) document.getElementById('cfg-token').value = c.token;
+        if (c.password) document.getElementById('cfg-password').value = c.password;
+        if (c.sitePassword) document.getElementById('cfg-site-pw').value = c.sitePassword;
+    } else {
+        show('login');
+        document.getElementById('repo-info').textContent = c.user + '/' + c.repo;
+    }
+    document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
+    // 回填网站密码
+    if (c.sitePassword) {
+        document.getElementById('dashboard-site-pw').value = c.sitePassword;
+        document.getElementById('site-pw-status').textContent = '当前已设置密码保护';
+    }
+})();
+
+function goSetup() {
+    var c = cfg();
+    document.getElementById('cfg-user').value = c.user || '';
+    document.getElementById('cfg-repo').value = c.repo || '';
+    document.getElementById('cfg-token').value = c.token || '';
+    document.getElementById('cfg-password').value = c.password || '';
+    document.getElementById('cfg-site-pw').value = c.sitePassword || '';
+    show('setup');
+}
+
+function doSaveConfig() {
+    var c = {
+        user: document.getElementById('cfg-user').value.trim(),
+        repo: document.getElementById('cfg-repo').value.trim(),
+        token: document.getElementById('cfg-token').value.trim(),
+        password: document.getElementById('cfg-password').value.trim(),
+        sitePassword: document.getElementById('cfg-site-pw').value.trim()
+    };
+    if (!c.user || !c.repo || !c.token || !c.password) {
+        toast('请填写所有必填字段（用户名、仓库名、Token、管理密码）', 'err');
+        return;
+    }
+    cfgSave(c);
+    document.getElementById('repo-info').textContent = c.user + '/' + c.repo;
+    if (c.sitePassword) {
+        document.getElementById('dashboard-site-pw').value = c.sitePassword;
+        document.getElementById('site-pw-status').textContent = '当前已设置密码保护';
+    }
+    toast('✅ 配置已保存', 'ok');
+    show('login');
+}
+
+function doLogin() {
+    var pw = document.getElementById('login-password').value;
+    if (pw === cfg().password) {
+        show('dashboard');
+        document.getElementById('repo-info').textContent = cfg().user + '/' + cfg().repo;
+        if (cfg().sitePassword) {
+            document.getElementById('dashboard-site-pw').value = cfg().sitePassword;
+            document.getElementById('site-pw-status').textContent = '当前已设置密码保护';
+        } else {
+            document.getElementById('site-pw-status').textContent = '当前无密码，网站可公开访问';
+        }
+    } else {
+        toast('密码错误', 'err');
+    }
+}
+
+function doLogout() { show('login'); document.getElementById('login-password').value = ''; }
+
+// ========== Tab 切换 ==========
+var currentTab = 'daily';
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('entry-type').value = tab;
+    document.getElementById('location-field').style.display = tab === 'journey' ? 'block' : 'none';
+    document.getElementById('photo-captions').style.display = tab === 'journey' ? 'block' : 'none';
+    document.getElementById('tab-daily').className = tab === 'daily' ? 'tab-btn on-daily' : 'tab-btn';
+    document.getElementById('tab-journey').className = tab === 'journey' ? 'tab-btn on-journey' : 'tab-btn';
+    updatePhotoCaptions();
+}
+
+// ========== 照片 ==========
+var selectedFiles = [];
+
+function previewPhotos() {
+    var input = document.getElementById('photo-files');
+    selectedFiles = Array.from(input.files);
+    var preview = document.getElementById('photo-preview');
+    preview.innerHTML = selectedFiles.map(function(f, i) {
+        return '<div style="width:80px;height:80px;border-radius:10px;overflow:hidden;background:#f3f4f6;position:relative;"><img src="' + URL.createObjectURL(f) + '" style="width:100%;height:100%;object-fit:cover;"><span style="position:absolute;top:2px;right:4px;font-size:10px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5);">' + (i+1) + '</span></div>';
+    }).join('') || '<span class="text-xs text-gray-400">未选择照片</span>';
+    updatePhotoCaptions();
+}
+
+function updatePhotoCaptions() {
+    var container = document.getElementById('photo-captions');
+    if (currentTab !== 'journey' || selectedFiles.length === 0) { container.innerHTML = ''; return; }
+    container.innerHTML = selectedFiles.map(function(f, i) {
+        return '<div><label style="font-size:12px;color:#888;">照片 ' + (i+1) + ' 配文（' + f.name + '）</label><input type="text" class="photo-cap" data-idx="' + i + '" placeholder="给这张照片写一段描述..." style="font-size:13px;"></div>';
+    }).join('');
+}
+
+// ========== GitHub API ==========
+function apiBase() {
+    var c = cfg();
+    return 'https://api.github.com/repos/' + c.user + '/' + c.repo;
+}
+
+function apiHeaders() {
+    return {
+        'Authorization': 'Bearer ' + cfg().token,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+    };
+}
+
+async function ghGet(path) {
+    var resp = await fetch(apiBase() + '/contents/' + path, { headers: apiHeaders() });
+    if (!resp.ok) throw new Error('获取 ' + path + ' 失败: ' + resp.status);
+    return resp.json();
+}
+
+async function ghPut(path, contentB64, message, sha) {
+    var body = { message: message, content: contentB64 };
+    if (sha) body.sha = sha;
+    var resp = await fetch(apiBase() + '/contents/' + path, {
+        method: 'PUT',
+        headers: Object.assign({}, apiHeaders(), { 'Content-Type': 'application/json' }),
+        body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+        var err = await resp.json().catch(function() { return {}; });
+        throw new Error('上传 ' + path + ' 失败: ' + resp.status + ' ' + (err.message || ''));
+    }
+    return resp.json();
+}
+
+function fileToB64(file) {
+    return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(reader.result.split(',')[1]); };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+function escJS(str) {
+    return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
+// ========== 更新网站密码 ==========
+async function updateSitePassword() {
+    var newPw = document.getElementById('dashboard-site-pw').value.trim();
+    var c = cfg();
+
+    // 更新本地
+    c.sitePassword = newPw;
+    cfgSave(c);
+
+    if (newPw) {
+        document.getElementById('site-pw-status').textContent = '当前已设置密码保护';
+    } else {
+        document.getElementById('site-pw-status').textContent = '当前无密码，网站可公开访问';
+    }
+
+    // 通过 GitHub API 更新 data.js
+    try {
+        toast('正在更新密码...', 'info');
+        var dataFile = await ghGet('data.js');
+        var content = atob(dataFile.content);
+        // 替换 sitePassword 的值
+        content = content.replace(/sitePassword:\s*"[^"]*"/, 'sitePassword: "' + escJS(newPw) + '"');
+        var newB64 = btoa(unescape(encodeURIComponent(content)));
+        await ghPut('data.js', newB64, '更新网站访问密码', dataFile.sha);
+        toast('✅ 密码已更新！30 秒后生效', 'ok');
+    } catch(e) {
+        toast('⚠️ 本地已保存，但同步到 GitHub 失败: ' + e.message, 'err');
+    }
+}
+
+// ========== 发布内容 ==========
+async function doPublish() {
+    var type = document.getElementById('entry-type').value;
+    var folder = document.getElementById('entry-folder').value.trim();
+    var title = document.getElementById('entry-title').value.trim();
+    var date = document.getElementById('entry-date').value;
+    var location = document.getElementById('entry-location').value.trim();
+    var text = document.getElementById('entry-text').value.trim();
+
+    if (!folder || !title || !date || !text || selectedFiles.length === 0) {
+        toast('请填写所有必填字段并选择至少一张照片', 'err');
+        return;
+    }
+
+    var btn = document.getElementById('publish-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 发布中...';
+    setStatus('busy', '正在上传...');
+    setProgress(0);
+    clearLog();
+
+    try {
+        var totalSteps = selectedFiles.length + 1;
+        var completed = 0;
+
+        // 1. 上传照片
+        var photoNames = [];
+        for (var i = 0; i < selectedFiles.length; i++) {
+            var file = selectedFiles[i];
+            var safeName = file.name.replace(/[^a-zA-Z0-9一-鿿\.\-_]/g, '_');
+            var path = folder + '/' + safeName;
+            var b64 = await fileToB64(file);
+            addLog('📤 上传: ' + path);
+            await ghPut(path, b64, '添加照片: ' + path);
+            photoNames.push(safeName);
+            completed++;
+            setProgress(Math.round((completed / totalSteps) * 100));
+        }
+
+        // 2. 读取 data.js
+        addLog('📥 读取 data.js...');
+        var dataFile = await ghGet('data.js');
+        var content = atob(dataFile.content);
+        setProgress(Math.round((completed / totalSteps) * 50));
+
+        // 3. 生成新条目
+        var newEntry;
+        if (type === 'daily') {
+            newEntry = '\n    {\n      folder: "' + folder + '",\n      title: "' + title + '",\n      date: "' + date + '",\n      text: "' + escJS(text) + '",\n      photos: [' + photoNames.map(function(p) { return '"' + p + '"'; }).join(', ') + ']\n    },';
+        } else {
+            var caps = [];
+            document.querySelectorAll('.photo-cap').forEach(function(inp) {
+                var v = inp.value.trim();
+                if (v) caps.push({ idx: parseInt(inp.dataset.idx), cap: v });
+            });
+            var entries = photoNames.map(function(name, i) {
+                var cap = caps.find(function(c) { return c.idx === i; });
+                if (cap) return '{ file: "' + name + '", caption: "' + escJS(cap.cap) + '" }';
+                return '"' + name + '"';
+            });
+            newEntry = '\n    {\n      folder: "' + folder + '",\n      title: "' + title + '",\n      location: "' + location + '",\n      date: "' + date + '",\n      text: "' + escJS(text) + '",\n      photos: [' + entries.join(', ') + ']\n    },';
+        }
+
+        // 4. 找到数组并插入
+        var arrayKey = type === 'daily' ? 'daily' : 'journeys';
+        var marker = arrayKey + ': [';
+        var startIdx = content.indexOf(marker);
+        if (startIdx === -1) throw new Error('找不到 ' + arrayKey + ' 数组');
+
+        var depth = 0, insertIdx = -1, inArr = false;
+        for (var j = startIdx; j < content.length; j++) {
+            if (content[j] === '[') { depth++; inArr = true; }
+            else if (content[j] === ']') { depth--; if (inArr && depth === 0) { insertIdx = j; break; } }
+        }
+        if (insertIdx === -1) throw new Error('无法解析 ' + arrayKey + ' 数组');
+
+        var newContent = content.substring(0, insertIdx) + newEntry + '\n  ' + content.substring(insertIdx);
+        var newB64 = btoa(unescape(encodeURIComponent(newContent)));
+        addLog('📝 更新 data.js，新增一条' + (type === 'daily' ? '日常' : '旅程') + '记录');
+
+        await ghPut('data.js', newB64, '添加' + (type === 'daily' ? '日常' : '旅程') + ': ' + title, dataFile.sha);
+        completed++;
+        setProgress(100);
+        setStatus('ok', '✅ 发布成功！');
+        addLog('✅ 全部完成！30 秒后刷新网站即可看到新内容');
+        toast('✅ 发布成功！30 秒后刷新网站即可看到', 'ok');
+
+        // 重置
+        document.getElementById('entry-folder').value = '';
+        document.getElementById('entry-title').value = '';
+        document.getElementById('entry-text').value = '';
+        document.getElementById('entry-location').value = '';
+        document.getElementById('photo-files').value = '';
+        document.getElementById('photo-preview').innerHTML = '';
+        document.getElementById('photo-captions').innerHTML = '';
+        selectedFiles = [];
+    } catch(e) {
+        setStatus('err', '❌ ' + e.message);
+        addLog('❌ 错误: ' + e.message);
+        toast('❌ 发布失败: ' + e.message, 'err');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 发布到网站';
+    }
+}
+
+// ========== UI 辅助 ==========
+function setStatus(state, text) {
+    var dot = document.getElementById('status-dot');
+    dot.className = 'dot dot-' + state;
+    document.getElementById('status-text').textContent = text;
+}
+function setProgress(pct) {
+    document.getElementById('progress-bar').style.width = pct + '%';
+}
+function addLog(msg) {
+    var list = document.getElementById('log-list');
+    var first = list.querySelector('p');
+    if (first && first.textContent === '就绪，等待操作...') { list.innerHTML = ''; }
+    var p = document.createElement('p');
+    p.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+    list.appendChild(p);
+    list.scrollTop = list.scrollHeight;
+}
+function clearLog() { document.getElementById('log-list').innerHTML = ''; }
+function toast(msg, type) {
+    var old = document.querySelector('.toast'); if (old) old.remove();
+    var t = document.createElement('div');
+    t.className = 'toast toast-' + type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function() { t.remove(); }, 3000);
+}
+
+// 回车登录
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        var loginEl = document.getElementById('screen-login');
+        if (loginEl.classList.contains('on')) { doLogin(); }
+    }
+});
 </script>
 
 </body>

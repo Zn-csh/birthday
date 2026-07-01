@@ -12,7 +12,8 @@ const SITE_DATA = {
     name2: "蔡思晗",
     // 2024年元宵节 (甲辰年正月十五)
     startDate: "2024-02-24",
-    startDateLunar: "甲辰年正月十五 · 元宵节"
+    startDateLunar: "甲辰年正月十五 · 元宵节",
+    sitePassword: ""  // 空 = 无密码; 在 admin.html 中设置
   },
 
   // ========== 日常 ==========

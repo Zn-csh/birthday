@@ -622,9 +622,80 @@
             background: rgba(255,255,255,0.16);
             color: #fff;
         }
+        /* ========== 密码门 ========== */
+        #pw-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: linear-gradient(135deg, #fce4e4 0%, #fef0f0 25%, #fff5ee 50%, #fce8e8 75%, #fef5f5 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: "Ma Shan Zheng", "PingFang SC", cursive;
+        }
+        #pw-gate .pw-box {
+            text-align: center;
+            animation: fadeSlideIn 0.8s ease;
+        }
+        #pw-gate .pw-icon { font-size: 56px; margin-bottom: 16px; }
+        #pw-gate .pw-title { font-size: 28px; color: #e11d48; margin-bottom: 6px; font-weight: 700; }
+        #pw-gate .pw-sub { font-size: 15px; color: #c0a0a8; margin-bottom: 28px; }
+        #pw-gate .pw-input {
+            width: 220px;
+            padding: 12px 18px;
+            border: 2px solid #f4d0d8;
+            border-radius: 30px;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            background: #fff;
+            font-family: inherit;
+            transition: border 0.3s;
+        }
+        #pw-gate .pw-input:focus { border-color: #e11d48; }
+        #pw-gate .pw-btn {
+            display: block;
+            margin: 16px auto 0;
+            background: linear-gradient(135deg, #e11d48, #f43e5e);
+            color: #fff;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: inherit;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        #pw-gate .pw-btn:hover { transform: scale(1.04); box-shadow: 0 4px 18px rgba(244,62,94,0.3); }
+        #pw-gate .pw-error {
+            color: #e11d48;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
     </style>
 </head>
 <body class="antialiased">
+
+    <!-- ==================== 密码门 ==================== -->
+    <div id="pw-gate" style="display:none;">
+        <div class="pw-box">
+            <div class="pw-icon">💗</div>
+            <div class="pw-title">张楠 & 蔡思晗</div>
+            <div class="pw-sub">请输入密码查看我们的故事</div>
+            <input type="password" class="pw-input" id="pw-input" placeholder="输入密码" maxlength="20">
+            <button class="pw-btn" onclick="checkPassword()">✨ 打开</button>
+            <p class="pw-error" id="pw-error">密码不对哦，再试试~</p>
+        </div>
+    </div>
 
     <!-- ==================== 首页 ==================== -->
     <div id="page-home" class="page active">
@@ -725,6 +796,38 @@
 
     <!-- ==================== 主脚本 ==================== -->
     <script>
+    // ---- 密码检查 ----
+    (function() {
+        const pw = SITE_DATA.couple.sitePassword;
+        if (pw) {
+            document.getElementById('pw-gate').style.display = 'flex';
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.body.style.overflow = 'hidden';
+            document.getElementById('pw-input').focus();
+            // 回车提交
+            document.getElementById('pw-input').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') checkPassword();
+            });
+        }
+    })();
+
+    function checkPassword() {
+        const input = document.getElementById('pw-input').value.trim();
+        if (input === SITE_DATA.couple.sitePassword) {
+            document.getElementById('pw-gate').style.display = 'none';
+            document.body.style.overflow = '';
+            document.getElementById('page-home').classList.add('active');
+        } else {
+            const err = document.getElementById('pw-error');
+            err.style.display = 'block';
+            document.getElementById('pw-input').value = '';
+            document.getElementById('pw-input').focus();
+            err.style.animation = 'none';
+            err.offsetHeight;
+            err.style.animation = 'shake 0.4s ease';
+        }
+    }
+
     // ---- 页面切换 ----
     function showPage(name) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
