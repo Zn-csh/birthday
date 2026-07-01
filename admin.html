@@ -1,590 +1,536 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台管理 - 张楠 & 蔡思晗</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #fefcf9; }
-        .card { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 1px 8px rgba(0,0,0,0.05); margin-bottom: 18px; }
-        label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
-        input, textarea, select { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: 14px; outline: none; transition: border 0.2s; font-family: inherit; }
-        input:focus, textarea:focus, select:focus { border-color: #f43e5e; box-shadow: 0 0 0 3px rgba(244,62,94,0.08); }
-        textarea { resize: vertical; min-height: 80px; }
-        .btn { padding: 10px 24px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.25s; }
-        .btn-primary { background: linear-gradient(135deg, #e11d48, #f43e5e); color: #fff; }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(244,62,94,0.3); }
-        .btn-outline { background: #fff; color: #666; border: 1.5px solid #e5e7eb; }
-        .btn-outline:hover { background: #f9fafb; }
-        .btn-sm { padding: 6px 14px; font-size: 12px; }
-        .btn:disabled { opacity: 0.5; pointer-events: none; }
-        .screen { display: none; }
-        .screen.on { display: block; }
-        .screen.setup-fallback { display: block; }
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 14px; z-index: 999; animation: slide 0.3s ease; color: #fff; }
-        .toast-ok { background: #065f46; }
-        .toast-err { background: #991b1b; }
-        .toast-info { background: #1e3a5f; }
-        @keyframes slide { from{opacity:0;transform:translateY(20px) translateX(-50%);} to{opacity:1;transform:translateY(0) translateX(-50%);} }
-        .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-        .dot-idle { background: #d1d5db; }
-        .dot-busy { background: #f59e0b; animation: pulse 1s infinite; }
-        .dot-ok { background: #10b981; }
-        .dot-err { background: #ef4444; }
-        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-        .progress { height: 4px; background: #f43e5e; border-radius: 2px; transition: width 0.3s; }
-        .tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
-        .tag-daily { background: #fff7ed; color: #c2410c; }
-        .tag-journey { background: #eff6ff; color: #2563eb; }
-        .tab-btn { padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 1.5px solid #e5e7eb; cursor: pointer; transition: all 0.2s; background: #f9fafb; color: #6b7280; }
-        .tab-btn.on-daily { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
-        .tab-btn.on-journey { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
-        /* 关键布局回退（Tailwind 加载前） */
-        .max-w-2xl { max-width: 42rem; }
-        .mx-auto { margin-left: auto; margin-right: auto; }
-        .px-4 { padding-left: 1rem; padding-right: 1rem; }
-        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
-        .mb-2 { margin-bottom: 0.5rem; } .mb-3 { margin-bottom: 0.75rem; }
-        .mb-4 { margin-bottom: 1rem; } .mb-5 { margin-bottom: 1.25rem; } .mb-6 { margin-bottom: 1.5rem; }
-        .mt-2 { margin-top: 0.5rem; } .mt-3 { margin-top: 0.75rem; }
-        .text-center { text-align: center; }
-        .text-2xl { font-size: 1.5rem; }
-        .text-sm { font-size: 0.875rem; }
-        .text-xs { font-size: 0.75rem; }
-        .font-bold { font-weight: 700; }
-        .font-normal { font-weight: 400; }
-        .text-gray-800 { color: #1f2937; }
-        .text-gray-700 { color: #374151; }
-        .text-gray-600 { color: #4b5563; }
-        .text-gray-400 { color: #9ca3af; }
-        .text-gray-300 { color: #d1d5db; }
-        .flex { display: flex; }
-        .grid { display: grid; }
-        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-        .gap-2 { gap: 0.5rem; } .gap-3 { gap: 0.75rem; } .gap-4 { gap: 1rem; }
-        .items-center { align-items: center; }
-        .items-end { align-items: flex-end; }
-        .justify-between { justify-content: space-between; }
-        .flex-wrap { flex-wrap: wrap; }
-        .w-full { width: 100%; }
-        .max-w-xs { max-width: 20rem; }
-        .max-h-40 { max-height: 10rem; }
-        .overflow-y-auto { overflow-y: auto; }
-        .space-y-1 > * + * { margin-top: 0.25rem; }
-        .space-y-2 > * + * { margin-top: 0.5rem; }
-        .space-y-4 > * + * { margin-top: 1rem; }
-        .cursor-pointer { cursor: pointer; }
-        .hover\:text-gray-600:hover { color: #4b5563; }
-        .antialiased { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>后台管理 - 张楠 & 蔡思晗</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #fefcf9; color: #333; }
+.container { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
+
+.card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); margin-bottom: 16px; }
+
+label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; }
+input, textarea { width: 100%; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 14px; outline: none; font-family: inherit; transition: border 0.2s; }
+input:focus, textarea:focus { border-color: #f43e5e; }
+textarea { resize: vertical; min-height: 80px; }
+
+.btn { display: inline-block; padding: 10px 24px; border-radius: 10px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #e11d48, #f43e5e); color: #fff; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-outline { background: #fff; color: #666; border: 1.5px solid #ddd; }
+.btn-outline:hover { background: #f5f5f5; }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+.btn:disabled { opacity: 0.5; pointer-events: none; }
+
+.form-group { margin-bottom: 14px; }
+.form-row { display: flex; gap: 14px; }
+.form-row > * { flex: 1; }
+
+h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+h2 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+.subtitle { font-size: 13px; color: #999; margin-bottom: 18px; }
+.hint { font-size: 12px; color: #aaa; margin-top: 6px; }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 10px; font-size: 14px; z-index: 999; color: #fff; animation: fadeIn 0.3s ease; }
+.toast-ok { background: #059669; }
+.toast-err { background: #dc2626; }
+.toast-info { background: #1e40af; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(16px) translateX(-50%);} to{opacity:1;transform:translateY(0) translateX(-50%);} }
+
+.status-bar { display: flex; align-items: center; gap: 10px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-dot.idle { background: #d1d5db; }
+.status-dot.busy { background: #f59e0b; animation: blink 1s infinite; }
+.status-dot.ok { background: #10b981; }
+.status-dot.err { background: #ef4444; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+.progress-bar { height: 4px; background: #eee; border-radius: 2px; margin-top: 12px; }
+.progress-fill { height: 100%; background: #f43e5e; border-radius: 2px; width: 0%; transition: width 0.3s; }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.tab { padding: 8px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 1.5px solid #ddd; cursor: pointer; background: #f9fafb; color: #888; }
+.tab.active-daily { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.tab.active-journey { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+
+.log-box { font-size: 12px; color: #999; max-height: 160px; overflow-y: auto; line-height: 1.8; }
+
+.preview-img { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; }
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+</style>
 </head>
-<body class="antialiased">
+<body>
 
-<div id="debug-out" style="position:fixed;top:0;left:0;right:0;background:#ffeb3b;color:#333;padding:4px 10px;font-size:11px;z-index:99999;font-family:monospace;word-break:break-all;min-height:20px;"></div>
+<div class="container" id="main-container">
 
-<div class="max-w-2xl mx-auto px-4 py-8">
+  <!-- ========== 1. 首次设置页 ========== -->
+  <div id="page-setup">
+    <div class="card">
+      <h1>&#x1F527; 首次设置</h1>
+      <p class="subtitle">连接 GitHub 仓库以启用在线发布。<br>Token 获取：GitHub → Settings → Developer settings → Tokens (classic) → Generate new token，勾选 <b>repo</b> 权限。</p>
 
-    <!-- ====== 1. 首次设置 ====== -->
-    <div id="screen-setup" class="screen setup-fallback">
-        <div class="card">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">🔧 首次设置</h1>
-            <p class="text-sm text-gray-400 mb-6">连接 GitHub 仓库以启用在线发布。Token 获取：GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token，勾选 <b>repo</b> 权限。</p>
+      <div class="form-group"><label>GitHub 用户名</label><input type="text" id="cfg-user" placeholder="例如：Zn-csh"></div>
+      <div class="form-group"><label>仓库名</label><input type="text" id="cfg-repo" placeholder="例如：birthday"></div>
+      <div class="form-group"><label>Personal Access Token</label><input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx"></div>
+      <div class="form-group"><label>管理密码</label><input type="password" id="cfg-password" placeholder="设置一个只有你知道的密码"></div>
+      <div class="form-group"><label>网站访问密码 <span style="color:#aaa;font-weight:400;">（留空则无需密码）</span></label><input type="password" id="cfg-site-pw" placeholder="让访客输入的密码"></div>
 
-            <div class="space-y-4 mb-6">
-                <div>
-                    <label>GitHub 用户名</label>
-                    <input type="text" id="cfg-user" placeholder="例如：Zn-csh">
-                </div>
-                <div>
-                    <label>仓库名</label>
-                    <input type="text" id="cfg-repo" placeholder="例如：birthday">
-                </div>
-                <div>
-                    <label>Personal Access Token</label>
-                    <input type="password" id="cfg-token" placeholder="ghp_xxxxxxxxxxxx">
-                </div>
-                <div>
-                    <label>管理密码</label>
-                    <input type="password" id="cfg-password" placeholder="设置一个只有你知道的密码">
-                </div>
-                <div>
-                    <label>网站访问密码 <span class="text-gray-300 font-normal">（设空则无需密码即可访问）</span></label>
-                    <input type="password" id="cfg-site-pw" placeholder="让宝宝输入的密码，留空则表示无需密码">
-                </div>
-            </div>
-            <button class="btn btn-primary" onclick="doSaveConfig()">保存配置</button>
-        </div>
+      <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
+    </div>
+  </div>
+
+  <!-- ========== 2. 登录页 ========== -->
+  <div id="page-login">
+    <div class="card" style="text-align:center;">
+      <h1>&#x1F510; 后台管理</h1>
+      <p class="subtitle">张楠 & 蔡思晗 · 回忆网站</p>
+      <div style="max-width:260px;margin:0 auto;">
+        <div class="form-group"><input type="password" id="login-pw" placeholder="请输入管理密码" style="text-align:center;"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="doLogin()">进入后台</button>
+        <p class="hint" style="cursor:pointer;" onclick="goSetup()">&#x2699;&#xFE0F; 重新设置</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 3. 管理面板 ========== -->
+  <div id="page-dashboard">
+    <div class="header-row">
+      <h1>&#x1F4CB; 内容管理</h1>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:12px;color:#999;" id="repo-badge"></span>
+        <button class="btn btn-outline btn-sm" onclick="doLogout()">退出</button>
+      </div>
     </div>
 
-    <!-- ====== 2. 登录 ====== -->
-    <div id="screen-login" class="screen">
-        <div class="card text-center">
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">🔐 后台管理</h1>
-            <p class="text-sm text-gray-400 mb-6">张楠 & 蔡思晗 · 回忆网站</p>
-            <div class="max-w-xs mx-auto">
-                <input type="password" id="login-password" placeholder="请输入管理密码" class="text-center mb-4">
-                <button class="btn btn-primary w-full" onclick="doLogin()">进入后台</button>
-                <p class="text-xs text-gray-400 mt-3 cursor-pointer hover:text-gray-600" onclick="goSetup()">⚙️ 重新设置</p>
-            </div>
-        </div>
+    <!-- 状态 -->
+    <div class="card">
+      <div class="status-bar">
+        <span class="status-dot idle" id="st-dot"></span>
+        <span style="font-size:13px;color:#666;" id="st-text">就绪</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
     </div>
 
-    <!-- ====== 3. 管理面板 ====== -->
-    <div id="screen-dashboard" class="screen">
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-2xl font-bold text-gray-800">📋 内容管理</h1>
-            <div class="flex items-center gap-4">
-                <span class="text-xs text-gray-400" id="repo-info"></span>
-                <button class="btn btn-outline btn-sm" onclick="doLogout()">退出</button>
-            </div>
-        </div>
-
-        <!-- 状态 -->
-        <div class="card">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="dot dot-idle" id="status-dot"></span>
-                    <span class="text-sm text-gray-600" id="status-text">就绪</span>
-                </div>
-                <a href="index.html" target="_blank" class="text-sm text-gray-400 hover:text-gray-600">预览网站 →</a>
-            </div>
-            <div class="progress mt-3" style="width:0%;" id="progress-bar"></div>
-        </div>
-
-        <!-- 网站密码 -->
-        <div class="card">
-            <h3 class="font-bold text-gray-700 mb-3">🔒 网站访问密码</h3>
-            <div class="flex gap-3 items-end">
-                <div style="flex:1;">
-                    <label style="font-size:12px;">密码（留空 = 无需密码，任何人都能看）</label>
-                    <input type="text" id="dashboard-site-pw" placeholder="当前无密码">
-                </div>
-                <button class="btn btn-outline btn-sm" onclick="updateSitePassword()">更新密码</button>
-            </div>
-            <p class="text-xs text-gray-400 mt-2" id="site-pw-status"></p>
-        </div>
-
-        <!-- 添加内容 -->
-        <div class="card">
-            <h3 class="font-bold text-gray-700 mb-4">✏️ 添加新内容</h3>
-
-            <div class="flex gap-3 mb-5">
-                <button class="tab-btn on-daily" id="tab-daily" onclick="switchTab('daily')">📖 日常</button>
-                <button class="tab-btn" id="tab-journey" onclick="switchTab('journey')">🧭 旅程</button>
-            </div>
-
-            <input type="hidden" id="entry-type" value="daily">
-
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label>文件夹名 *</label>
-                    <input type="text" id="entry-folder" placeholder="例如：日常5">
-                </div>
-                <div>
-                    <label>标题 *</label>
-                    <input type="text" id="entry-title" placeholder="例如：珠江新城散步">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label>日期 *</label>
-                    <input type="date" id="entry-date">
-                </div>
-                <div id="location-field" style="display:none;">
-                    <label>地点</label>
-                    <input type="text" id="entry-location" placeholder="例如：珠海">
-                </div>
-            </div>
-
-            <div class="mb-4">
-                <label>描述文字 *</label>
-                <textarea id="entry-text" rows="3" placeholder="在这里写下你的感受..."></textarea>
-            </div>
-
-            <div class="mb-4">
-                <label>照片 *（多选）</label>
-                <input type="file" id="photo-files" multiple accept="image/*" class="mb-2" onchange="previewPhotos()">
-                <div id="photo-preview" class="flex gap-2 flex-wrap"></div>
-                <div id="photo-captions" style="display:none;" class="mt-3 space-y-2"></div>
-            </div>
-
-            <button class="btn btn-primary" id="publish-btn" onclick="doPublish()">🚀 发布到网站</button>
-            <p class="text-xs text-gray-400 mt-2">发布后约 30 秒刷新网站即可看到新内容</p>
-        </div>
-
-        <!-- 日志 -->
-        <div class="card">
-            <h3 class="font-bold text-gray-700 mb-3">📝 操作日志</h3>
-            <div id="log-list" class="text-xs text-gray-400 space-y-1 max-h-40 overflow-y-auto">
-                <p>就绪，等待操作...</p>
-            </div>
-        </div>
+    <!-- 密码管理 -->
+    <div class="card">
+      <h2>&#x1F512; 网站访问密码</h2>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="flex:1;"><label style="font-size:12px;">密码（留空 = 公开访问）</label><input type="text" id="dash-site-pw" placeholder="当前无密码"></div>
+        <button class="btn btn-outline btn-sm" onclick="updateSitePw()">更新密码</button>
+      </div>
+      <p class="hint" id="site-pw-hint"></p>
     </div>
+
+    <!-- 添加内容 -->
+    <div class="card">
+      <h2>&#x270F;&#xFE0F; 添加新内容</h2>
+
+      <div class="tabs">
+        <button class="tab active-daily" id="tab-daily" onclick="switchTab('daily')">&#x1F4D6; 日常</button>
+        <button class="tab" id="tab-journey" onclick="switchTab('journey')">&#x1F9ED; 旅程</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label>文件夹名 *</label><input type="text" id="entry-folder" placeholder="例如：日常5"></div>
+        <div class="form-group"><label>标题 *</label><input type="text" id="entry-title" placeholder="例如：珠江新城散步"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label>日期 *</label><input type="date" id="entry-date"></div>
+        <div class="form-group" id="loc-group" style="display:none;"><label>地点</label><input type="text" id="entry-location" placeholder="例如：珠海"></div>
+      </div>
+
+      <div class="form-group"><label>描述文字 *</label><textarea id="entry-text" rows="3" placeholder="在这里写下你的感受..."></textarea></div>
+
+      <div class="form-group">
+        <label>照片 *（多选）</label>
+        <input type="file" id="photo-files" multiple accept="image/*" onchange="previewPhotos()">
+        <div id="photo-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+        <div id="photo-caps" style="display:none;margin-top:8px;"></div>
+      </div>
+
+      <button class="btn btn-primary" id="publish-btn" onclick="doPublish()">&#x1F680; 发布到网站</button>
+      <p class="hint">发布后约 30 秒刷新网站即可看到新内容</p>
+    </div>
+
+    <!-- 日志 -->
+    <div class="card">
+      <h2>&#x1F4DD; 操作日志</h2>
+      <div class="log-box" id="log-box">就绪，等待操作...</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-// ========== 调试 ==========
-var _dbg = [];
-function _log(msg) { _dbg.push(msg); var d = document.getElementById('debug-out'); if (d) d.textContent = _dbg.join(' | '); }
+// ============================================
+// 存储
+// ============================================
+var STORE_KEY = 'bday_admin';
 
-// ========== 存储 ==========
-var KEY = 'bday_admin';
-_log('1');
-
-function cfg() {
-    try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { return {}; }
+function loadCfg() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch(e) { return {}; }
 }
-function cfgSave(obj) { localStorage.setItem(KEY, JSON.stringify(obj)); }
-
-// ========== 页面切换 ==========
-function show(id) {
-    _log('show:'+id);
-    var screens = ['screen-setup','screen-login','screen-dashboard'];
-    for (var i = 0; i < screens.length; i++) {
-        var el = document.getElementById(screens[i]);
-        if (!el) { _log('miss:'+screens[i]); continue; }
-        el.style.display = (screens[i] === id) ? 'block' : 'none';
-    }
+function saveCfg(obj) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(obj));
 }
 
-// ========== 初始化 ==========
-_log('2');
-try {
-    var c = cfg();
-    _log('3');
-    if (!c.user || !c.repo || !c.token || !c.password) {
-        _log('show-setup');
-        show('setup');
-        if (c.user) document.getElementById('cfg-user').value = c.user;
-        if (c.repo) document.getElementById('cfg-repo').value = c.repo;
-        if (c.token) document.getElementById('cfg-token').value = c.token;
-        if (c.password) document.getElementById('cfg-password').value = c.password;
-        if (c.sitePassword) document.getElementById('cfg-site-pw').value = c.sitePassword;
-    } else {
-        _log('show-login');
-        show('login');
-        var infoEl = document.getElementById('repo-info');
-        if (infoEl) infoEl.textContent = c.user + '/' + c.repo;
-    }
-    _log('4');
-    var dateEl = document.getElementById('entry-date');
-    if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
-    if (c.sitePassword) {
-        var pwEl = document.getElementById('dashboard-site-pw');
-        var statusEl = document.getElementById('site-pw-status');
-        if (pwEl) pwEl.value = c.sitePassword;
-        if (statusEl) statusEl.textContent = '当前已设置密码保护';
-    }
-    _log('done');
-} catch(e) {
-    _log('err:'+e.message);
-    document.getElementById('screen-setup').style.display = 'block';
+// ============================================
+// 页面切换（直接用 style.display）
+// ============================================
+function showPage(id) {
+  var pages = { 'setup': 'page-setup', 'login': 'page-login', 'dashboard': 'page-dashboard' };
+  for (var k in pages) {
+    var el = document.getElementById(pages[k]);
+    if (el) el.style.display = (k === id) ? 'block' : 'none';
+  }
+}
+
+// ============================================
+// 初始化
+// ============================================
+(function() {
+  var c = loadCfg();
+  document.getElementById('entry-date').value = new Date().toISOString().split('T')[0];
+
+  if (!c.user || !c.repo || !c.token || !c.password) {
+    // 无配置 → 显示设置页
+    showPage('setup');
+    if (c.user) document.getElementById('cfg-user').value = c.user;
+    if (c.repo) document.getElementById('cfg-repo').value = c.repo;
+    if (c.token) document.getElementById('cfg-token').value = c.token;
+    if (c.password) document.getElementById('cfg-password').value = c.password;
+    if (c.sitePassword) document.getElementById('cfg-site-pw').value = c.sitePassword;
+  } else {
+    // 有配置 → 显示登录页
+    showPage('login');
+    document.getElementById('repo-badge').textContent = c.user + '/' + c.repo;
+  }
+
+  // 回填密码信息
+  if (c.sitePassword) {
+    document.getElementById('dash-site-pw').value = c.sitePassword;
+    document.getElementById('site-pw-hint').textContent = '当前已设置密码保护';
+  }
+})();
+
+// ============================================
+// 设置页：保存配置
+// ============================================
+function saveConfig() {
+  var c = {
+    user: document.getElementById('cfg-user').value.trim(),
+    repo: document.getElementById('cfg-repo').value.trim(),
+    token: document.getElementById('cfg-token').value.trim(),
+    password: document.getElementById('cfg-password').value.trim(),
+    sitePassword: document.getElementById('cfg-site-pw').value.trim()
+  };
+  if (!c.user || !c.repo || !c.token || !c.password) {
+    showToast('请填写所有必填字段', 'err');
+    return;
+  }
+  saveCfg(c);
+  document.getElementById('repo-badge').textContent = c.user + '/' + c.repo;
+  if (c.sitePassword) {
+    document.getElementById('dash-site-pw').value = c.sitePassword;
+    document.getElementById('site-pw-hint').textContent = '当前已设置密码保护';
+  }
+  showToast('配置已保存', 'ok');
+  showPage('login');
 }
 
 function goSetup() {
-    var c = cfg();
-    document.getElementById('cfg-user').value = c.user || '';
-    document.getElementById('cfg-repo').value = c.repo || '';
-    document.getElementById('cfg-token').value = c.token || '';
-    document.getElementById('cfg-password').value = c.password || '';
-    document.getElementById('cfg-site-pw').value = c.sitePassword || '';
-    show('setup');
+  var c = loadCfg();
+  if (c.user) document.getElementById('cfg-user').value = c.user;
+  if (c.repo) document.getElementById('cfg-repo').value = c.repo;
+  if (c.token) document.getElementById('cfg-token').value = c.token;
+  if (c.password) document.getElementById('cfg-password').value = c.password;
+  if (c.sitePassword) document.getElementById('cfg-site-pw').value = c.sitePassword;
+  showPage('setup');
 }
 
-function doSaveConfig() {
-    var c = {
-        user: document.getElementById('cfg-user').value.trim(),
-        repo: document.getElementById('cfg-repo').value.trim(),
-        token: document.getElementById('cfg-token').value.trim(),
-        password: document.getElementById('cfg-password').value.trim(),
-        sitePassword: document.getElementById('cfg-site-pw').value.trim()
-    };
-    if (!c.user || !c.repo || !c.token || !c.password) {
-        toast('请填写所有必填字段（用户名、仓库名、Token、管理密码）', 'err');
-        return;
-    }
-    cfgSave(c);
-    document.getElementById('repo-info').textContent = c.user + '/' + c.repo;
-    if (c.sitePassword) {
-        document.getElementById('dashboard-site-pw').value = c.sitePassword;
-        document.getElementById('site-pw-status').textContent = '当前已设置密码保护';
-    }
-    toast('✅ 配置已保存', 'ok');
-    show('login');
-}
-
+// ============================================
+// 登录
+// ============================================
 function doLogin() {
-    var pw = document.getElementById('login-password').value;
-    if (pw === cfg().password) {
-        show('dashboard');
-        document.getElementById('repo-info').textContent = cfg().user + '/' + cfg().repo;
-        if (cfg().sitePassword) {
-            document.getElementById('dashboard-site-pw').value = cfg().sitePassword;
-            document.getElementById('site-pw-status').textContent = '当前已设置密码保护';
-        } else {
-            document.getElementById('site-pw-status').textContent = '当前无密码，网站可公开访问';
-        }
+  if (document.getElementById('login-pw').value === loadCfg().password) {
+    showPage('dashboard');
+    document.getElementById('repo-badge').textContent = loadCfg().user + '/' + loadCfg().repo;
+    var c = loadCfg();
+    if (c.sitePassword) {
+      document.getElementById('dash-site-pw').value = c.sitePassword;
+      document.getElementById('site-pw-hint').textContent = '当前已设置密码保护';
     } else {
-        toast('密码错误', 'err');
+      document.getElementById('site-pw-hint').textContent = '当前无密码，网站可公开访问';
     }
+  } else {
+    showToast('密码错误', 'err');
+  }
 }
 
-function doLogout() { show('login'); document.getElementById('login-password').value = ''; }
-
-// ========== Tab 切换 ==========
-var currentTab = 'daily';
-
-function switchTab(tab) {
-    currentTab = tab;
-    document.getElementById('entry-type').value = tab;
-    document.getElementById('location-field').style.display = tab === 'journey' ? 'block' : 'none';
-    document.getElementById('photo-captions').style.display = tab === 'journey' ? 'block' : 'none';
-    document.getElementById('tab-daily').className = tab === 'daily' ? 'tab-btn on-daily' : 'tab-btn';
-    document.getElementById('tab-journey').className = tab === 'journey' ? 'tab-btn on-journey' : 'tab-btn';
-    updatePhotoCaptions();
-}
-
-// ========== 照片 ==========
-var selectedFiles = [];
-
-function previewPhotos() {
-    var input = document.getElementById('photo-files');
-    selectedFiles = Array.from(input.files);
-    var preview = document.getElementById('photo-preview');
-    preview.innerHTML = selectedFiles.map(function(f, i) {
-        return '<div style="width:80px;height:80px;border-radius:10px;overflow:hidden;background:#f3f4f6;position:relative;"><img src="' + URL.createObjectURL(f) + '" style="width:100%;height:100%;object-fit:cover;"><span style="position:absolute;top:2px;right:4px;font-size:10px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5);">' + (i+1) + '</span></div>';
-    }).join('') || '<span class="text-xs text-gray-400">未选择照片</span>';
-    updatePhotoCaptions();
-}
-
-function updatePhotoCaptions() {
-    var container = document.getElementById('photo-captions');
-    if (currentTab !== 'journey' || selectedFiles.length === 0) { container.innerHTML = ''; return; }
-    container.innerHTML = selectedFiles.map(function(f, i) {
-        return '<div><label style="font-size:12px;color:#888;">照片 ' + (i+1) + ' 配文（' + f.name + '）</label><input type="text" class="photo-cap" data-idx="' + i + '" placeholder="给这张照片写一段描述..." style="font-size:13px;"></div>';
-    }).join('');
-}
-
-// ========== GitHub API ==========
-function apiBase() {
-    var c = cfg();
-    return 'https://api.github.com/repos/' + c.user + '/' + c.repo;
-}
-
-function apiHeaders() {
-    return {
-        'Authorization': 'Bearer ' + cfg().token,
-        'Accept': 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28'
-    };
-}
-
-async function ghGet(path) {
-    var resp = await fetch(apiBase() + '/contents/' + path, { headers: apiHeaders() });
-    if (!resp.ok) throw new Error('获取 ' + path + ' 失败: ' + resp.status);
-    return resp.json();
-}
-
-async function ghPut(path, contentB64, message, sha) {
-    var body = { message: message, content: contentB64 };
-    if (sha) body.sha = sha;
-    var resp = await fetch(apiBase() + '/contents/' + path, {
-        method: 'PUT',
-        headers: Object.assign({}, apiHeaders(), { 'Content-Type': 'application/json' }),
-        body: JSON.stringify(body)
-    });
-    if (!resp.ok) {
-        var err = await resp.json().catch(function() { return {}; });
-        throw new Error('上传 ' + path + ' 失败: ' + resp.status + ' ' + (err.message || ''));
-    }
-    return resp.json();
-}
-
-function fileToB64(file) {
-    return new Promise(function(resolve, reject) {
-        var reader = new FileReader();
-        reader.onload = function() { resolve(reader.result.split(',')[1]); };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
-}
-
-function escJS(str) {
-    return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
-}
-
-// ========== 更新网站密码 ==========
-async function updateSitePassword() {
-    var newPw = document.getElementById('dashboard-site-pw').value.trim();
-    var c = cfg();
-
-    // 更新本地
-    c.sitePassword = newPw;
-    cfgSave(c);
-
-    if (newPw) {
-        document.getElementById('site-pw-status').textContent = '当前已设置密码保护';
-    } else {
-        document.getElementById('site-pw-status').textContent = '当前无密码，网站可公开访问';
-    }
-
-    // 通过 GitHub API 更新 data.js
-    try {
-        toast('正在更新密码...', 'info');
-        var dataFile = await ghGet('data.js');
-        var content = atob(dataFile.content);
-        // 替换 sitePassword 的值
-        content = content.replace(/sitePassword:\s*"[^"]*"/, 'sitePassword: "' + escJS(newPw) + '"');
-        var newB64 = btoa(unescape(encodeURIComponent(content)));
-        await ghPut('data.js', newB64, '更新网站访问密码', dataFile.sha);
-        toast('✅ 密码已更新！30 秒后生效', 'ok');
-    } catch(e) {
-        toast('⚠️ 本地已保存，但同步到 GitHub 失败: ' + e.message, 'err');
-    }
-}
-
-// ========== 发布内容 ==========
-async function doPublish() {
-    var type = document.getElementById('entry-type').value;
-    var folder = document.getElementById('entry-folder').value.trim();
-    var title = document.getElementById('entry-title').value.trim();
-    var date = document.getElementById('entry-date').value;
-    var location = document.getElementById('entry-location').value.trim();
-    var text = document.getElementById('entry-text').value.trim();
-
-    if (!folder || !title || !date || !text || selectedFiles.length === 0) {
-        toast('请填写所有必填字段并选择至少一张照片', 'err');
-        return;
-    }
-
-    var btn = document.getElementById('publish-btn');
-    btn.disabled = true;
-    btn.textContent = '⏳ 发布中...';
-    setStatus('busy', '正在上传...');
-    setProgress(0);
-    clearLog();
-
-    try {
-        var totalSteps = selectedFiles.length + 1;
-        var completed = 0;
-
-        // 1. 上传照片
-        var photoNames = [];
-        for (var i = 0; i < selectedFiles.length; i++) {
-            var file = selectedFiles[i];
-            var safeName = file.name.replace(/[^a-zA-Z0-9一-鿿\.\-_]/g, '_');
-            var path = folder + '/' + safeName;
-            var b64 = await fileToB64(file);
-            addLog('📤 上传: ' + path);
-            await ghPut(path, b64, '添加照片: ' + path);
-            photoNames.push(safeName);
-            completed++;
-            setProgress(Math.round((completed / totalSteps) * 100));
-        }
-
-        // 2. 读取 data.js
-        addLog('📥 读取 data.js...');
-        var dataFile = await ghGet('data.js');
-        var content = atob(dataFile.content);
-        setProgress(Math.round((completed / totalSteps) * 50));
-
-        // 3. 生成新条目
-        var newEntry;
-        if (type === 'daily') {
-            newEntry = '\n    {\n      folder: "' + folder + '",\n      title: "' + title + '",\n      date: "' + date + '",\n      text: "' + escJS(text) + '",\n      photos: [' + photoNames.map(function(p) { return '"' + p + '"'; }).join(', ') + ']\n    },';
-        } else {
-            var caps = [];
-            document.querySelectorAll('.photo-cap').forEach(function(inp) {
-                var v = inp.value.trim();
-                if (v) caps.push({ idx: parseInt(inp.dataset.idx), cap: v });
-            });
-            var entries = photoNames.map(function(name, i) {
-                var cap = caps.find(function(c) { return c.idx === i; });
-                if (cap) return '{ file: "' + name + '", caption: "' + escJS(cap.cap) + '" }';
-                return '"' + name + '"';
-            });
-            newEntry = '\n    {\n      folder: "' + folder + '",\n      title: "' + title + '",\n      location: "' + location + '",\n      date: "' + date + '",\n      text: "' + escJS(text) + '",\n      photos: [' + entries.join(', ') + ']\n    },';
-        }
-
-        // 4. 找到数组并插入
-        var arrayKey = type === 'daily' ? 'daily' : 'journeys';
-        var marker = arrayKey + ': [';
-        var startIdx = content.indexOf(marker);
-        if (startIdx === -1) throw new Error('找不到 ' + arrayKey + ' 数组');
-
-        var depth = 0, insertIdx = -1, inArr = false;
-        for (var j = startIdx; j < content.length; j++) {
-            if (content[j] === '[') { depth++; inArr = true; }
-            else if (content[j] === ']') { depth--; if (inArr && depth === 0) { insertIdx = j; break; } }
-        }
-        if (insertIdx === -1) throw new Error('无法解析 ' + arrayKey + ' 数组');
-
-        var newContent = content.substring(0, insertIdx) + newEntry + '\n  ' + content.substring(insertIdx);
-        var newB64 = btoa(unescape(encodeURIComponent(newContent)));
-        addLog('📝 更新 data.js，新增一条' + (type === 'daily' ? '日常' : '旅程') + '记录');
-
-        await ghPut('data.js', newB64, '添加' + (type === 'daily' ? '日常' : '旅程') + ': ' + title, dataFile.sha);
-        completed++;
-        setProgress(100);
-        setStatus('ok', '✅ 发布成功！');
-        addLog('✅ 全部完成！30 秒后刷新网站即可看到新内容');
-        toast('✅ 发布成功！30 秒后刷新网站即可看到', 'ok');
-
-        // 重置
-        document.getElementById('entry-folder').value = '';
-        document.getElementById('entry-title').value = '';
-        document.getElementById('entry-text').value = '';
-        document.getElementById('entry-location').value = '';
-        document.getElementById('photo-files').value = '';
-        document.getElementById('photo-preview').innerHTML = '';
-        document.getElementById('photo-captions').innerHTML = '';
-        selectedFiles = [];
-    } catch(e) {
-        setStatus('err', '❌ ' + e.message);
-        addLog('❌ 错误: ' + e.message);
-        toast('❌ 发布失败: ' + e.message, 'err');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '🚀 发布到网站';
-    }
-}
-
-// ========== UI 辅助 ==========
-function setStatus(state, text) {
-    var dot = document.getElementById('status-dot');
-    dot.className = 'dot dot-' + state;
-    document.getElementById('status-text').textContent = text;
-}
-function setProgress(pct) {
-    document.getElementById('progress-bar').style.width = pct + '%';
-}
-function addLog(msg) {
-    var list = document.getElementById('log-list');
-    var first = list.querySelector('p');
-    if (first && first.textContent === '就绪，等待操作...') { list.innerHTML = ''; }
-    var p = document.createElement('p');
-    p.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-    list.appendChild(p);
-    list.scrollTop = list.scrollHeight;
-}
-function clearLog() { document.getElementById('log-list').innerHTML = ''; }
-function toast(msg, type) {
-    var old = document.querySelector('.toast'); if (old) old.remove();
-    var t = document.createElement('div');
-    t.className = 'toast toast-' + type;
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(function() { t.remove(); }, 3000);
+function doLogout() {
+  document.getElementById('login-pw').value = '';
+  showPage('login');
 }
 
 // 回车登录
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-        var loginEl = document.getElementById('screen-login');
-        if (loginEl.classList.contains('on')) { doLogin(); }
-    }
+  if (e.key === 'Enter' && document.getElementById('page-login').style.display === 'block') {
+    doLogin();
+  }
 });
+
+// ============================================
+// Tab 切换
+// ============================================
+var currentTab = 'daily';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('loc-group').style.display = (tab === 'journey') ? 'block' : 'none';
+  document.getElementById('photo-caps').style.display = (tab === 'journey') ? 'block' : 'none';
+  document.getElementById('tab-daily').className = (tab === 'daily') ? 'tab active-daily' : 'tab';
+  document.getElementById('tab-journey').className = (tab === 'journey') ? 'tab active-journey' : 'tab';
+  rebuildPhotoCaptions();
+}
+
+// ============================================
+// 照片选择
+// ============================================
+var selectedFiles = [];
+
+function previewPhotos() {
+  selectedFiles = Array.from(document.getElementById('photo-files').files);
+  var html = '';
+  for (var i = 0; i < selectedFiles.length; i++) {
+    html += '<div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;background:#f3f4f6;"><img src="' + URL.createObjectURL(selectedFiles[i]) + '" class="preview-img"><span style="position:absolute;top:2px;right:4px;font-size:10px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5);">' + (i+1) + '</span></div>';
+  }
+  document.getElementById('photo-previews').innerHTML = html || '<span style="font-size:12px;color:#999;">未选择照片</span>';
+  rebuildPhotoCaptions();
+}
+
+function rebuildPhotoCaptions() {
+  var container = document.getElementById('photo-caps');
+  if (currentTab !== 'journey' || selectedFiles.length === 0) { container.innerHTML = ''; return; }
+  var html = '';
+  for (var i = 0; i < selectedFiles.length; i++) {
+    html += '<div class="form-group"><label style="font-size:12px;color:#888;">照片 ' + (i+1) + ' 配文（' + selectedFiles[i].name + '）</label><input type="text" class="photo-cap" data-idx="' + i + '" placeholder="给这张照片写一段描述..." style="font-size:13px;"></div>';
+  }
+  container.innerHTML = html;
+}
+
+// ============================================
+// GitHub API
+// ============================================
+function apiBase() {
+  var c = loadCfg();
+  return 'https://api.github.com/repos/' + c.user + '/' + c.repo;
+}
+
+function apiHeaders() {
+  return {
+    'Authorization': 'Bearer ' + loadCfg().token,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+}
+
+async function ghGet(path) {
+  var resp = await fetch(apiBase() + '/contents/' + path, { headers: apiHeaders() });
+  if (!resp.ok) throw new Error('读取 ' + path + ' 失败: HTTP ' + resp.status);
+  return resp.json();
+}
+
+async function ghPut(path, contentB64, message, sha) {
+  var body = { message: message, content: contentB64 };
+  if (sha) body.sha = sha;
+  var resp = await fetch(apiBase() + '/contents/' + path, {
+    method: 'PUT',
+    headers: Object.assign({}, apiHeaders(), { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) {
+    var info = await resp.json().catch(function() { return {}; });
+    throw new Error('上传 ' + path + ' 失败: HTTP ' + resp.status + ' ' + (info.message || ''));
+  }
+  return resp.json();
+}
+
+function fileToB64(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() { resolve(reader.result.split(',')[1]); };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function escJS(str) {
+  return str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n');
+}
+
+// ============================================
+// 更新网站密码
+// ============================================
+async function updateSitePw() {
+  var newPw = document.getElementById('dash-site-pw').value.trim();
+  var c = loadCfg();
+  c.sitePassword = newPw;
+  saveCfg(c);
+
+  document.getElementById('site-pw-hint').textContent = newPw ? '当前已设置密码保护' : '当前无密码，网站可公开访问';
+
+  try {
+    showToast('正在更新远程密码...', 'info');
+    var dataFile = await ghGet('data.js');
+    var content = atob(dataFile.content);
+    content = content.replace(/sitePassword:\s*"[^"]*"/, 'sitePassword: "' + escJS(newPw) + '"');
+    var newB64 = btoa(unescape(encodeURIComponent(content)));
+    await ghPut('data.js', newB64, '更新网站访问密码', dataFile.sha);
+    showToast('密码已更新，30 秒后生效', 'ok');
+  } catch(e) {
+    showToast('本地已保存，远程同步失败: ' + e.message, 'err');
+  }
+}
+
+// ============================================
+// 发布内容
+// ============================================
+async function doPublish() {
+  var type = currentTab;
+  var folder = document.getElementById('entry-folder').value.trim();
+  var title = document.getElementById('entry-title').value.trim();
+  var date = document.getElementById('entry-date').value;
+  var location = document.getElementById('entry-location').value.trim();
+  var text = document.getElementById('entry-text').value.trim();
+
+  if (!folder || !title || !date || !text || selectedFiles.length === 0) {
+    showToast('请填写所有必填字段并选择至少一张照片', 'err');
+    return;
+  }
+
+  var btn = document.getElementById('publish-btn');
+  btn.disabled = true;
+  btn.textContent = '发布中...';
+  setStatus('busy', '正在上传...');
+  setProgress(0);
+  clearLog();
+
+  try {
+    var total = selectedFiles.length + 1;
+    var done = 0;
+
+    // 1. 上传照片
+    var names = [];
+    for (var i = 0; i < selectedFiles.length; i++) {
+      var safeName = selectedFiles[i].name.replace(/[^a-zA-Z0-9一-鿿\.\-_]/g, '_');
+      var path = folder + '/' + safeName;
+      var b64 = await fileToB64(selectedFiles[i]);
+      addLog('上传: ' + path);
+      await ghPut(path, b64, '添加照片: ' + path);
+      names.push(safeName);
+      done++;
+      setProgress(Math.round((done / total) * 100));
+    }
+
+    // 2. 读取 data.js
+    addLog('读取 data.js...');
+    var dataFile = await ghGet('data.js');
+    var content = atob(dataFile.content);
+
+    // 3. 生成新条目
+    var newEntry;
+    if (type === 'daily') {
+      newEntry = '\n    {\n      folder: "' + folder + '",\n      title: "' + title + '",\n      date: "' + date + '",\n      text: "' + escJS(text) + '",\n      photos: [' + names.map(function(n) { return '"' + n + '"'; }).join(', ') + ']\n    },';
+    } else {
+      var capInputs = document.querySelectorAll('.photo-cap');
+      var caps = [];
+      capInputs.forEach(function(inp) {
+        var v = inp.value.trim();
+        if (v) caps.push({ idx: parseInt(inp.dataset.idx), cap: v });
+      });
+      var items = names.map(function(name, i) {
+        var cap = caps.find(function(c) { return c.idx === i; });
+        if (cap) return '{ file: "' + name + '", caption: "' + escJS(cap.cap) + '" }';
+        return '"' + name + '"';
+      });
+      newEntry = '\n    {\n      folder: "' + folder + '",\n      title: "' + title + '",\n      location: "' + location + '",\n      date: "' + date + '",\n      text: "' + escJS(text) + '",\n      photos: [' + items.join(', ') + ']\n    },';
+    }
+
+    // 4. 插入新条目
+    var arrayKey = type === 'daily' ? 'daily' : 'journeys';
+    var marker = arrayKey + ': [';
+    var start = content.indexOf(marker);
+    if (start === -1) throw new Error('找不到 ' + arrayKey + ' 数组');
+
+    var depth = 0, insertPos = -1, inArr = false;
+    for (var j = start; j < content.length; j++) {
+      if (content[j] === '[') { depth++; inArr = true; }
+      else if (content[j] === ']') { depth--; if (inArr && depth === 0) { insertPos = j; break; } }
+    }
+    if (insertPos === -1) throw new Error('无法解析 ' + arrayKey + ' 数组');
+
+    var newContent = content.substring(0, insertPos) + newEntry + '\n  ' + content.substring(insertPos);
+    var newB64 = btoa(unescape(encodeURIComponent(newContent)));
+    addLog('更新 data.js');
+
+    await ghPut('data.js', newB64, '添加' + (type === 'daily' ? '日常' : '旅程') + ': ' + title, dataFile.sha);
+    done++;
+    setProgress(100);
+    setStatus('ok', '发布成功！');
+    addLog('全部完成！约 30 秒后刷新网站可见');
+    showToast('发布成功！', 'ok');
+
+    // 重置表单
+    document.getElementById('entry-folder').value = '';
+    document.getElementById('entry-title').value = '';
+    document.getElementById('entry-text').value = '';
+    document.getElementById('entry-location').value = '';
+    document.getElementById('photo-files').value = '';
+    document.getElementById('photo-previews').innerHTML = '';
+    document.getElementById('photo-caps').innerHTML = '';
+    selectedFiles = [];
+  } catch(e) {
+    setStatus('err', '失败: ' + e.message);
+    addLog('错误: ' + e.message);
+    showToast('发布失败: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '发布到网站';
+  }
+}
+
+// ============================================
+// 状态栏 / 日志 / Toast
+// ============================================
+function setStatus(state, text) {
+  var dot = document.getElementById('st-dot');
+  dot.className = 'status-dot ' + state;
+  document.getElementById('st-text').textContent = text;
+}
+function setProgress(pct) {
+  document.getElementById('prog-fill').style.width = pct + '%';
+}
+function addLog(msg) {
+  var box = document.getElementById('log-box');
+  if (box.textContent === '就绪，等待操作...') box.textContent = '';
+  box.textContent += '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n';
+  box.scrollTop = box.scrollHeight;
+}
+function clearLog() {
+  document.getElementById('log-box').textContent = '';
+}
+function showToast(msg, type) {
+  var old = document.querySelector('.toast');
+  if (old) old.remove();
+  var t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function() { t.remove(); }, 3000);
+}
 </script>
 
 </body>
