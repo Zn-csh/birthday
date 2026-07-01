@@ -244,9 +244,7 @@ function show(id) {
     for (var i = 0; i < screens.length; i++) {
         var el = document.getElementById(screens[i]);
         if (!el) { _log('miss:'+screens[i]); continue; }
-        el.classList.remove('setup-fallback');
-        if (screens[i] === id) { el.classList.add('on'); }
-        else { el.classList.remove('on'); }
+        el.style.display = (screens[i] === id) ? 'block' : 'none';
     }
 }
 
@@ -281,7 +279,7 @@ try {
     _log('done');
 } catch(e) {
     _log('err:'+e.message);
-    document.getElementById('screen-setup').classList.add('on');
+    document.getElementById('screen-setup').style.display = 'block';
 }
 
 function goSetup() {
