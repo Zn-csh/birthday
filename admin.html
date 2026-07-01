@@ -80,6 +80,8 @@
 </head>
 <body class="antialiased">
 
+<div id="debug-out" style="position:fixed;top:0;left:0;right:0;background:#ffeb3b;color:#333;padding:4px 10px;font-size:11px;z-index:99999;font-family:monospace;word-break:break-all;min-height:20px;"></div>
+
 <div class="max-w-2xl mx-auto px-4 py-8">
 
     <!-- ====== 1. 首次设置 ====== -->
@@ -222,8 +224,13 @@
 </div>
 
 <script>
+// ========== 调试 ==========
+var _dbg = [];
+function _log(msg) { _dbg.push(msg); var d = document.getElementById('debug-out'); if (d) d.textContent = _dbg.join(' | '); }
+
 // ========== 存储 ==========
-const KEY = 'bday_admin';
+var KEY = 'bday_admin';
+_log('1');
 
 function cfg() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e) { return {}; }
@@ -232,44 +239,50 @@ function cfgSave(obj) { localStorage.setItem(KEY, JSON.stringify(obj)); }
 
 // ========== 页面切换 ==========
 function show(id) {
-    ['screen-setup','screen-login','screen-dashboard'].forEach(function(s) {
-        var el = document.getElementById(s);
-        if (!el) return;
+    _log('show:'+id);
+    var screens = ['screen-setup','screen-login','screen-dashboard'];
+    for (var i = 0; i < screens.length; i++) {
+        var el = document.getElementById(screens[i]);
+        if (!el) { _log('miss:'+screens[i]); continue; }
         el.classList.remove('setup-fallback');
-        if (s === id) { el.classList.add('on'); }
+        if (screens[i] === id) { el.classList.add('on'); }
         else { el.classList.remove('on'); }
-    });
+    }
 }
 
 // ========== 初始化 ==========
-(function init() {
-    try {
-        var c = cfg();
-        if (!c.user || !c.repo || !c.token || !c.password) {
-            show('setup');
-            if (c.user) document.getElementById('cfg-user').value = c.user;
-            if (c.repo) document.getElementById('cfg-repo').value = c.repo;
-            if (c.token) document.getElementById('cfg-token').value = c.token;
-            if (c.password) document.getElementById('cfg-password').value = c.password;
-            if (c.sitePassword) document.getElementById('cfg-site-pw').value = c.sitePassword;
-        } else {
-            show('login');
-            var infoEl = document.getElementById('repo-info');
-            if (infoEl) infoEl.textContent = c.user + '/' + c.repo;
-        }
-        var dateEl = document.getElementById('entry-date');
-        if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
-        if (c.sitePassword) {
-            var pwEl = document.getElementById('dashboard-site-pw');
-            var statusEl = document.getElementById('site-pw-status');
-            if (pwEl) pwEl.value = c.sitePassword;
-            if (statusEl) statusEl.textContent = '当前已设置密码保护';
-        }
-    } catch(e) {
-        // 如果 JS 出错，至少显示设置页面
-        document.getElementById('screen-setup').classList.add('on');
+_log('2');
+try {
+    var c = cfg();
+    _log('3');
+    if (!c.user || !c.repo || !c.token || !c.password) {
+        _log('show-setup');
+        show('setup');
+        if (c.user) document.getElementById('cfg-user').value = c.user;
+        if (c.repo) document.getElementById('cfg-repo').value = c.repo;
+        if (c.token) document.getElementById('cfg-token').value = c.token;
+        if (c.password) document.getElementById('cfg-password').value = c.password;
+        if (c.sitePassword) document.getElementById('cfg-site-pw').value = c.sitePassword;
+    } else {
+        _log('show-login');
+        show('login');
+        var infoEl = document.getElementById('repo-info');
+        if (infoEl) infoEl.textContent = c.user + '/' + c.repo;
     }
-})();
+    _log('4');
+    var dateEl = document.getElementById('entry-date');
+    if (dateEl) dateEl.value = new Date().toISOString().split('T')[0];
+    if (c.sitePassword) {
+        var pwEl = document.getElementById('dashboard-site-pw');
+        var statusEl = document.getElementById('site-pw-status');
+        if (pwEl) pwEl.value = c.sitePassword;
+        if (statusEl) statusEl.textContent = '当前已设置密码保护';
+    }
+    _log('done');
+} catch(e) {
+    _log('err:'+e.message);
+    document.getElementById('screen-setup').classList.add('on');
+}
 
 function goSetup() {
     var c = cfg();
